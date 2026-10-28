@@ -1,0 +1,11 @@
+name: ansys-rerate-agent
+version: 0.1.0
+description: >-
+  Demo engineering agent for a centrifugal compressor re-rate with Ansys: reads the customer's documents, drafts
+  and gets approval for the case, then runs sizing, geometry, mesh, CFD and structural checks and writes an
+  honest pass/fail report.
+hermes_requires: ">=0.21.0"
+author: ansys-rerate-agent maintainers
+license: Apache-2.0
+# No env_requires: the model and provider are configured by the setup step, and the MCP servers (rendered from
+# mcp_servers.json) only need the machine config path, which the setup step writes into the profile config.

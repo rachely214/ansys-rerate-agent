@@ -1,0 +1,17 @@
+# Demo agent behaviour defaults. No model, provider, secrets or MCP servers here: the setup step adds the
+# model choice and renders mcp_servers.json into this profile's config at install time.
+agent:
+  max_turns: 300            # a full run has many short polling turns
+  reasoning_effort: medium
+  verbose: false
+
+display:
+  streaming: true
+  compact: false
+  background_process_notifications: concise
+
+compression:
+  enabled: true
+  threshold: 0.5
+  protect_first_n: 3
+  protect_last_n: 20

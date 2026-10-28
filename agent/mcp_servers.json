@@ -1,0 +1,44 @@
+{
+  "case_v2": {
+    "command": "@@RERATE_PYTHON@@",
+    "args": ["-m", "rerate_mcp_v2.servers.case_server"],
+    "env": {"RERATE_CONFIG": "@@RERATE_CONFIG@@"},
+    "timeout": 120,
+    "connect_timeout": 120
+  },
+  "vista_v2": {
+    "command": "@@RERATE_PYTHON@@",
+    "args": ["-m", "rerate_mcp_v2.servers.vista_server"],
+    "env": {"RERATE_CONFIG": "@@RERATE_CONFIG@@"},
+    "timeout": 900,
+    "connect_timeout": 120
+  },
+  "geometry_v2": {
+    "command": "@@RERATE_PYTHON@@",
+    "args": ["-m", "rerate_mcp_v2.servers.geometry_server"],
+    "env": {"RERATE_CONFIG": "@@RERATE_CONFIG@@"},
+    "timeout": 900,
+    "connect_timeout": 120
+  },
+  "turbogrid_v2": {
+    "command": "@@RERATE_PYTHON@@",
+    "args": ["-m", "rerate_mcp_v2.servers.turbogrid_server"],
+    "env": {"RERATE_CONFIG": "@@RERATE_CONFIG@@"},
+    "timeout": 600,
+    "connect_timeout": 120
+  },
+  "fluent_v2": {
+    "command": "@@RERATE_PYTHON@@",
+    "args": ["-m", "rerate_mcp_v2.servers.fluent_server"],
+    "env": {"RERATE_CONFIG": "@@RERATE_CONFIG@@"},
+    "timeout": 600,
+    "connect_timeout": 120
+  },
+  "mechanical_v2": {
+    "command": "@@RERATE_PYTHON@@",
+    "args": ["-m", "rerate_mcp_v2.servers.mechanical_server"],
+    "env": {"RERATE_CONFIG": "@@RERATE_CONFIG@@"},
+    "timeout": 900,
+    "connect_timeout": 120
+  }
+}
