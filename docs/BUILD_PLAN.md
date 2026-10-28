@@ -1,4 +1,4 @@
-# BUILD_PLAN.md (for maintainers; removed or moved to docs/ before release)
+# BUILD_PLAN.md: maintainer note on how this repository was built (not user documentation; start at START-HERE.md)
 
 Repo: `ansys-rerate-agent`. Built from `compressor-rerate-agent-v2` (commit 68dbd2a), which stays as history.
 
@@ -19,7 +19,7 @@ the environment. All environment knowledge lives in the setup agent's skills and
 START-HERE.md                     plain-language entry for a non-technical user
 README.md                         what this is, honest status and limits, architecture
 agent/                            Hermes profile distribution: DEMO agent
-  distribution.yaml  SOUL.md  config.yaml  mcp.json(.template)  skills/<9 skills>
+  distribution.yaml  SOUL.md  config.yaml  mcp_servers.json (template)  skills/<8 rerate-* skills>
 runtime/                          Python package rerate_mcp_v2 (6 MCP servers + in-app Ansys scripts)
   pyproject.toml  src/rerate_mcp_v2/...  materials/
 setup/
@@ -37,10 +37,11 @@ dev/                              maintainer tools (mcp_call.py, clean_clone_tes
 
 ## Machine state (never in git)
 
-- Install home: `%LOCALAPPDATA%\ansys-rerate-agent\` -> `venv\`, `machine.config.yaml`, `example-data\`, `runs\`, `logs\`.
+- Install home: `%LOCALAPPDATA%\ansys-rerate-agent\` -> `venv\`, `machine.config.yaml`, `example-data\`, `runs\`, `work\`, `downloads\`, `logs\`.
   Keeps OneDrive / long paths / repo location out of the picture.
 - Hermes profiles under the Hermes home (installed with `hermes profile install`).
-- `mcp.json` paths: rendered at install time from `agent/mcp.json.template` with the venv python path and Ansys root.
+- MCP server entries: rendered at install time from `agent/mcp_servers.json` with the venv Python path and
+  `RERATE_CONFIG` (the machine config path), written into the demo profile's `config.yaml`.
 
 ## Conventions
 - Windows only for the Ansys side (Ansys GUIs need a Windows desktop); detected and stated plainly, not assumed.
