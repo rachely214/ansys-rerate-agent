@@ -12,7 +12,7 @@ operating_point:
   inlet_total_temperature: {value: 288.15, unit: K, source: "ENGINEERING CHOICE: standard day; 01_rerate_request.md power note uses standard-day inlet"}
   reference_pressure: {value: 14.696, unit: psia, source: "standard day (corrected-flow definition)"}
   reference_temperature: {value: 288.15, unit: K, source: "standard day (corrected-flow definition)"}
-  rotation_sign: {value: 1, source: "derived from the blade geometry: after mirror_theta the blades wrap toward -theta (dtheta/dz < 0 at the LE, dtheta/dr < 0 at the TE), so a backswept impeller must rotate toward +theta (omega > 0 about +z). The earlier -1 ran the impeller backwards (PROGRESS.md C15)"}
+  rotation_sign: {value: 1, source: "derived from the blade geometry: after mirror_theta the blades wrap toward -theta (dtheta/dz < 0 at the LE, dtheta/dr < 0 at the TE), so a backswept impeller must rotate toward +theta (omega > 0 about +z). The opposite sign runs the impeller backwards (docs/VALIDATION.md)"}
 
 baseline:
   corrected_flow: {value: 10.85, unit: lbm/s, source: "02_baseline_datasheet.md: inlet corrected flow, measured"}
@@ -77,7 +77,7 @@ cfd:
   outlet_static_pressure: {value: 228.3, unit: kPa, source: "NASA/CR-2014-218114/REV1 App. E.2 Fig. E.6: station 1b (mid vaneless, shroud/hub taps at r = 8.804 in) P1b/P01 = 3.01 +/- 0.03 at 100% Nc, 10.85 lbm/s; x 11 psia inlet total = 228.3 +/- 2.3 kPa (values digitised from the published plot)"}
   outlet_radius_ratio: {value: 1.0358, unit: "-", source: "r = 8.804 in (App. E.2 Tables E.2/E.3 tap radius) / impeller TE radius 8.4997 in (from the geometry)"}
   max_iterations: 3000
-  mesh_size_factor: {value: 1.2, source: "ENGINEERING CHOICE: TurboGrid global size factor. 1.2 keeps the splitter passage with the 0.012 in tip gap under the Student 1M-cell limit (780,920 cells, 44 spanwise + 16 gap elements); 1.5 gives 1,566,040 (PROGRESS C21)"}
+  mesh_size_factor: {value: 1.2, source: "ENGINEERING CHOICE: TurboGrid global size factor. 1.2 keeps the splitter passage with the 0.012 in tip gap under the Student 1M-cell limit (780,920 cells, 44 spanwise + 16 gap elements); 1.5 gives 1,566,040 (docs/DECISIONS.md, mesh size under the Student cell limit)"}
   turbulence_model: sst
   calibration:
     flow_tol: {value: 0.05, unit: "-", source: "ENGINEERING CHOICE: 5 % on corrected flow; typical agreement of steady RANS passage models with rig data near peak efficiency is 2 to 5 %"}

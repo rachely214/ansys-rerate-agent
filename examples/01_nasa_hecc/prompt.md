@@ -1,28 +1,27 @@
-# Example 01: NASA HECC re-rate, the prompt
+# Example 01: compressor re-rate, the prompt
 
-Prerequisites: setup done (SETUP.md), NASA tables downloaded (`geometry_data.README.md`), material file exported
-(`plugins/ansys-mcp/materials/README.md`), `doctor.py --mcp --case examples/01_nasa_hecc/case.yaml` ready.
+Before this: the setup assistant has finished and the health check said **ALL GREEN**.
 
-Start the agent in the V2 profile from the repository folder (`hermes -p rerate-v2`, or pick the profile in the
-desktop app), open a NEW chat, and paste:
-
----
-
-Read `agents/rerate-engineer/skills/rerate-run-v2/SKILL.md` and follow it.
-
-Our customer sent a re-rate request for their compressor. The documents are in
-`examples/01_nasa_hecc/inputs/` (re-rate request, baseline datasheet, casing limits). The geometry source is
-NASA's coordinate tables in `examples/01_nasa_hecc/geometry_data/AppendixE.4_HotCoordinates`.
-
-1. Draft the case file at `examples/01_nasa_hecc/case.yaml` from those documents (a draft already exists: check
-   every value against the documents, fix anything wrong, and keep the sources). Show me every value with its
-   source and every engineering choice, then wait for my approval.
-2. After I approve, run every stage live: sizing, geometry change and solids, passage mesh, CFD, structural.
-   Narrate each step in one line and print each stage's measured numbers as you go.
-3. Give me the pass/fail report. Record failures instead of declaring unverified stages passed, and label
-   results that come from simplified models.
+Open Hermes, choose the profile **ansys-rerate-agent**, start a **new chat**, and paste everything between the
+two lines below. Keep this computer unlocked and, if you use Remote Desktop, keep that window open until the
+report is done (the Ansys apps draw on this desktop).
 
 ---
 
-The draft case in this folder is the one used for validation. A full run takes about 35 to 45 minutes on a
-4-core CPU Fluent (Student license); most of it is the CFD solve.
+Our customer sent a re-rate request for their compressor. The documents are in the ansys-rerate-agent example
+folder `examples/01_nasa_hecc/inputs/` (re-rate request, baseline datasheet, casing limits). The impeller
+geometry is NASA's published coordinate tables, already referenced by the draft case file
+`examples/01_nasa_hecc/case.yaml`.
+
+1. Check the draft case file against the three documents: fix anything wrong and keep a source for every value.
+   Show me every value with its source and every engineering choice, then wait for my approval.
+2. After I approve, run every stage live: sizing, geometry change and solids, passage mesh, CFD (calibration
+   against the measured baseline, then the new design at its target flow), and structural.
+   Tell me in one line what each step is doing and print each stage's numbers as you go.
+3. Give me the pass/fail report. Record failures instead of declaring unverified checks passed, and label results
+   that come from simplified models.
+
+---
+
+What to expect: about 2 to 4.5 hours on a 4-core computer with the Student license, most of it CFD.
+`expected.md` describes what a finished run looks like.
