@@ -22,6 +22,26 @@ class CaseError(ValueError):
     pass
 
 
+def resolve_relative(rel: str | Path, case_file: Path, example_data: Path | None = None) -> Path:
+    """Resolve a relative case path: case folder first, then <example_data>/<case folder name>/.
+    example_data defaults to the machine config key paths.example_data (if a config exists)."""
+    case_dir = Path(case_file).resolve().parent
+    first = (case_dir / rel).resolve()
+    if first.exists():
+        return first
+    if example_data is None:
+        try:
+            from . import config
+            example_data = config.example_data_root()
+        except Exception:  # no machine config: only the case folder is searched
+            example_data = None
+    if example_data is not None:
+        second = (Path(example_data) / case_dir.name / rel).resolve()
+        if second.exists():
+            return second
+    return first
+
+
 def load_schema() -> dict:
     return yaml.safe_load(SCHEMA_FILE.read_text(encoding="utf-8"))["fields"]
 
@@ -77,8 +97,13 @@ class Case:
         return v.get("source") if isinstance(v, dict) else None
 
     def resolve_path(self, dotted: str) -> Path:
+        """Absolute path as given. A relative path is looked up first next to the case file, then under the
+        machine config's paths.example_data/<case folder name>/ (downloaded example data). If neither exists,
+        the path next to the case file is returned so the error names the expected place."""
         p = Path(str(self.val(dotted)))
-        return p if p.is_absolute() else (self.path.parent / p).resolve()
+        if p.is_absolute():
+            return p
+        return resolve_relative(p, self.path)
 
     @property
     def name(self) -> str:

@@ -3,6 +3,8 @@
 # Each quantity is a mapping: {value: <number>, unit: <unit string>, source: "<document, table/section>"}.
 # Fields marked required: the workflow refuses to run a stage that needs a missing required field.
 # There are NO defaults here on purpose: a value the documents do not give must be asked for, never assumed.
+# Relative paths (geometry.source, material.library_file) resolve first against the case file's folder, then
+# against <paths.example_data>/<case folder name>/ from the machine config. Absolute paths are used as given.
 
 schema_version: 2
 
@@ -36,7 +38,7 @@ fields:
   geometry.adapter:                   {required: true, type: text, allowed: [nasa_tables, bladegen_inf, step],
                                        stages: [geometry]}
   geometry.source:                    {required: true, type: path, stages: [geometry],
-                                       note: "path relative to the case file, or absolute"}
+                                       note: "absolute path, or relative: looked up first next to the case file, then under the machine config paths.example_data/<case folder name>/ (downloaded example data)"}
   geometry.adapter_options:           {required: false, type: mapping, stages: [geometry]}
   geometry.main_blades:               {required: true, type: int, stages: [sizing, geometry, cfd]}
   geometry.splitter_blades:           {required: true, type: int, stages: [sizing, geometry]}
@@ -55,7 +57,7 @@ fields:
 
   material.name:                      {required: true, type: text, stages: [structural]}
   material.library_file:              {required: true, type: path, stages: [structural],
-                                       note: "Ansys engineering-data XML containing material.name"}
+                                       note: "Ansys engineering-data XML or public-data YAML containing material.name; a relative path is looked up like geometry.source (case folder first, then paths.example_data/<case folder name>/)"}
   material.yield_strength:            {required: true, kind: pressure, stages: [structural, report]}
 
   structural.safety_factor_min:       {required: true, kind: dimensionless, stages: [structural, report]}
