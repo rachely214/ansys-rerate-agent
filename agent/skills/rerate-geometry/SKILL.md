@@ -1,18 +1,22 @@
 ---
-name: rerate-geometry-v2
-description: "Use when changing and building compressor impeller geometry in a re-rate (V2)."
-version: 2.0.0
+name: rerate-geometry
+description: "Use when changing and building compressor impeller geometry in a re-rate. Applies the sized exit-height change and builds solids."
+version: 1.0.0
 license: Apache-2.0
 metadata:
   hermes:
-    tags: [compressor, rerate, geometry, discovery, adapter, v2]
-    related_skills: [rerate-run-v2]
+    tags: [compressor, rerate, geometry, discovery, adapter]
+    related_skills: [rerate-run, rerate-structural]
 ---
 
 # Geometry: read, change, build
 
-Tools (`geometry_v2`): `inspect_geometry`, `apply_exit_height_change`, `build_start` + `job_status`,
-`screenshot`, `close_discovery`.
+Tools (`geometry_v2`): `inspect_geometry {}`, `apply_exit_height_change {blend_start_fraction, scale?, reason}`,
+`build_start {stride, theta_margin_deg, le_pad, root_fillet?}`, `job_status {}`, `screenshot {}`,
+`close_discovery {}`.
+
+Success: new exit height equals the sizing target, the impeller solid is closed, and the single-blade STEP for
+the structural stage exists.
 
 ## Method
 1. `inspect_geometry {}` and cross-check against the case before changing anything:
@@ -23,17 +27,22 @@ Tools (`geometry_v2`): `inspect_geometry`, `apply_exit_height_change`, `build_st
    - `blend_start_fraction` = where (as a fraction of the trailing-edge radius) the shroud starts to move. The
      inducer and inlet radii must stay fixed (they are casing walls), so start the blend well outside the inducer
      tip radius. Choose it from the meridional shape and say why.
+     Example: for the NASA example impeller 0.706 was used, because it is about 1.4 times the inducer tip radius
+     and keeps the whole inlet unchanged.
    - Check the returned exit height equals the sizing target.
-3. `build_start {stride, theta_margin_deg, le_pad}` (visible Discovery, background job), then poll
-   `job_status` every 30 to 60 s with a one-line status. A `desktop_disconnected`/`desktop_locked` reply or a
-   `timeout` state is a stop: tell the user, do not retry blindly. Start with stride 4 (lower =
-   finer loft), a few degrees of theta margin, and a small LE pad in the case length unit. State the values.
+3. `build_start {stride, theta_margin_deg, le_pad}` (visible Discovery, background job). Wait a few minutes,
+   then call `job_status`; repeat with a one-line status each time. State the values you chose:
+   - `stride`: use every Nth resampled section point for the loft (lower = finer, slower). Example: stride 4
+     worked for the NASA example, because it gives a smooth closed loft in a few minutes.
+   - a few degrees of theta margin, and a small leading-edge pad in the case length unit.
    - Pass only if the impeller solid is closed and the single-blade STEP exists. Read the logs for `FAIL` lines
-     (merge/fillet); a failed fillet is acceptable only if you say so in the report.
-4. On a Student license call `close_discovery` before meshing.
+     (merge or fillet); a failed fillet is acceptable only if you say so in the report.
+4. If the tool says Discovery must be closed before the next app, call `close_discovery {}` before meshing.
 
 Print: `STAGE 3 | exit height <h> | impeller closed, volume <v> | single blade STEP ok | ok`.
 
 ## Pitfalls
-- Discovery launch can take a minute and retries itself; `status: error` twice means stop and report.
+- A reply saying the desktop is locked or disconnected, or a job in `timeout`, is a stop: report the step and
+  stop. Do not retry blindly.
+- `status: error` twice on launch means stop and report.
 - The change is applied to the neutral geometry, so it works for any adapter; never edit curve files by hand.

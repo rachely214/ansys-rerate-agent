@@ -1,32 +1,33 @@
 ---
-name: rerate-run-v2
-description: "Use when asked to re-rate or uprate a centrifugal compressor stage (V2, case-driven)."
-version: 2.0.0
+name: rerate-run
+description: "Use when asked to re-rate or uprate a centrifugal compressor stage. Runs the case-driven study stage by stage."
+version: 1.0.0
 license: Apache-2.0
 metadata:
   hermes:
-    tags: [ansys, compressor, rerate, uprate, turbomachinery, mcp, v2]
-    related_skills: [rerate-intake-v2, rerate-sizing-v2, rerate-geometry-v2, rerate-meshing-v2, rerate-cfd-v2,
-                     rerate-structural-v2, rerate-report-v2, ansys-mcp-host-v2]
+    tags: [ansys, compressor, rerate, uprate, turbomachinery]
+    related_skills: [rerate-intake, rerate-sizing, rerate-geometry, rerate-meshing, rerate-cfd, rerate-structural,
+                     rerate-report]
 ---
 
-# Compressor re-rate, V2: entry point
+# Compressor re-rate: entry point
 
 You are the engineer running this study. There is no end-to-end script: you read the customer's documents,
 draft the case, decide each step from the tool results, and report honestly. Tools only move data and drive the
 apps; every engineering value comes from the approved `case.yaml`, and every choice you make is stated.
 
 ## Order (each stage has its own skill; load it before the stage)
-| # | Stage | Skill | MCP server | Evidence to print |
+| # | Stage | Skill | Tools | Evidence to print |
 |---|---|---|---|---|
-| 0 | Readiness | ansys-mcp-host-v2 | all | tools discovered, doctor result |
-| 1 | Intake: draft case.yaml, get approval | rerate-intake-v2 | case_v2 | value table with sources, approval |
-| 2 | 1D sizing | rerate-sizing-v2 | vista_v2 | exit height ratio, fits casing |
-| 3 | Geometry change + solids | rerate-geometry-v2 | geometry_v2 | adapter cross-check, new exit height, closed solids |
-| 4 | Passage mesh | rerate-meshing-v2 | turbogrid_v2 | cells, bad skew, negative volume |
-| 5 | CFD | rerate-cfd-v2 | fluent_v2 | PR, efficiency, corrected flow, convergence |
-| 6 | Structural | rerate-structural-v2 | mechanical_v2 | peak stress, SF, peak location check |
-| 7 | Report | rerate-report-v2 | case_v2 | verdict, scorecard with fidelity |
+| 1 | Intake: draft case.yaml, get approval | rerate-intake | case_v2 | value table with sources, approval |
+| 2 | 1D sizing | rerate-sizing | vista_v2 | exit height ratio, fits casing |
+| 3 | Geometry change and solids | rerate-geometry | geometry_v2 | adapter cross-check, new exit height, closed solids |
+| 4 | Passage mesh | rerate-meshing | turbogrid_v2 | cells, bad skew, negative volume |
+| 5 | CFD (baseline calibration, then design point) | rerate-cfd | fluent_v2, case_v2 | PR, efficiency, corrected flow, convergence, calibration |
+| 6 | Structural | rerate-structural | mechanical_v2 | stress, safety factor, where the peak is |
+| 7 | Report | rerate-report | case_v2 | verdict, scorecard with fidelity |
+
+Success: a report written from this run's own recorded stages, every row PASS, FAIL or NOT CHECKED with a reason.
 
 ## Hard rules
 1. **No simulation before approval.** Stage tools refuse unapproved or edited cases. Never call `case_approve`
@@ -34,20 +35,25 @@ apps; every engineering value comes from the approved `case.yaml`, and every cho
    copy a value from another case or from these skills.
 2. **Live only.** Never quote numbers from earlier runs, other run folders, or examples as results.
 3. **State every choice.** When a tool takes a parameter that is not in the case (blend start, loft stride,
-   mesh sizes, mesh topology, solve chunk/time cap), say what you chose and why in one line.
+   mesh sizes, mesh topology, solve chunk and time cap), say what you chose and why in one line.
 4. **Honest status.** After each stage print `STAGE n | key numbers | ok / error / partial`. A stage that did not
    run is NOT CHECKED, never PASS. A FAIL from a simplified model stays a FAIL with its fidelity label.
-5. **Nothing blocks.** Every app action that can take more than a few seconds is a `*_start` tool followed by a
-   status poll (`job_status`, `prep_status`, `solve_status`). Between polls use a short shell `sleep` (30 to
-   300 s). After EVERY poll, give the user one line, e.g. "still meshing, 2 min in".
-6. **Fail fast, never wait silently.** A `desktop_disconnected` or `desktop_locked` reply, or a job in state
-   `timeout`, is a stop: record it in the run notes, tell the user what to do (reconnect, unlock, or switch the app
-   to `headless` in the config), and wait for them.
-7. **License:** if the config says `student`, only one Ansys app runs at a time; close each app at the end of its
-   stage. On `commercial`, apps may stay open.
-8. **Errors:** retry a failed tool once. If it fails again, close that app (its close/disconnect tool), retry
+5. **Nothing blocks.** Long app actions are a `*_start` tool followed by a status check (`job_status`,
+   `prep_status`, `solve_status`). Wait a few minutes between checks, then call the status tool. After EVERY check,
+   give the user one line, e.g. "still meshing, 2 min in".
+6. **Stop when the computer is not ready.** A reply that says the desktop is locked or disconnected, an app will
+   not start, a tool is missing, or a job ended in `timeout` is a stop: say which step failed, in plain words,
+   record it in the run notes, and stop. Do not try to repair the computer; setup is handled separately.
+7. **One app at a time when the tool says so.** If a stage tool tells you to close an app before the next one,
+   close it with that app's close or disconnect tool at the end of its stage.
+8. **Errors:** retry a failed tool once. If it fails again, close that app (its close or disconnect tool), retry
    once more, then stop and report the blocker. Never substitute a saved result.
 9. Short, plain one-line narration before each tool call; no em or en dashes.
+
+## Integrity rules (never break)
+- No tuning factors, no scaling of results, no edits to tolerances or measured values to make a check pass.
+- A check without a converged, calibrated result is NOT CHECKED, not PASS.
+- Choke below the target flow is a real FAIL, reported with the maximum flow.
 
 ## Final answer
 1. Verdict line from `build_report`.

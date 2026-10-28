@@ -1,41 +1,48 @@
 ---
-name: rerate-structural-v2
-description: "Use when running the Mechanical spin-stress stage of a compressor re-rate (V2)."
-version: 2.0.0
+name: rerate-structural
+description: "Use when running the Mechanical spin-stress stage of a compressor re-rate. Checks blade and root fillet stress at overspeed."
+version: 1.0.0
 license: Apache-2.0
 metadata:
   hermes:
-    tags: [compressor, rerate, mechanical, stress, v2]
-    related_skills: [rerate-run-v2]
+    tags: [compressor, rerate, mechanical, stress]
+    related_skills: [rerate-run, rerate-geometry]
 ---
 
 # Structural (Mechanical, spin stress at overspeed)
 
-Tools (`mechanical_v2`): `connect_start {}`, `spin_stress_start {mesh_sizes, max_nodes?}`, `job_status {}`,
-`disconnect {}`. Nothing blocks; poll `job_status` every 30 to 60 s with a one-line status.
+Tools (`mechanical_v2`): `connect_start {}`, `geometry_diagnostics_start {step_path?}`,
+`spin_stress_start {mesh_sizes, max_nodes?}`, `job_status {}`, `disconnect {}`.
+
+Success: `solve_status` is `Done`, the mesh study converged, and the governing stress (the higher of blade body
+and root fillet) gives a safety factor on yield that is compared with the case minimum.
 
 ## Method
-1. `connect_start {}` (GUI or batch per config), poll `job_status` until finished (1 to 3 minutes).
-2. `spin_stress_start {mesh_sizes}`, poll `job_status`: give 3 to 5 element sizes in the case length unit, finest first that you expect to
-   fit the node limit (Student: 128,000 nodes, set in the case). State the list.
-   Speed = case speed x `limits.speed_max_fraction`; material and yield from the case.
+1. `connect_start {}`. Wait a minute or two, then call `job_status` until finished.
+2. `spin_stress_start {mesh_sizes}`, then wait a few minutes and call `job_status`; repeat with a one-line status.
+   Give 3 to 5 element sizes in the case length unit, coarsest you trust first down to the finest that should
+   fit the node limit in the case (`structural.max_mesh_nodes`). State the list.
+   Speed = case speed x `limits.speed_max_fraction`; material and yield come from the case.
 3. Check the answer before reporting it:
    - `solve_status` must be `Done` and a mesh size must have been used. If not, read `mechanical_errors` and
-     `diagnostics.mesh_tries` in the result and report them; a meshing failure is a geometry issue (see
-     `geometry_tolerances` in the config), not something to retry blindly.
-   - Look at the stress image (vision) and confirm the peak is on the blade or root fillet, not a single node on
-     the cut faces of the hub slice or the fixed support edge. If it is on a cut/support face, say the number is
-     a modelling artifact and do not use it for PASS.
-4. `disconnect {}` (Student).
+     `diagnostics.mesh_tries` in the result and report them; a meshing failure is a geometry issue, not something
+     to retry blindly. `geometry_diagnostics_start` lists short edges and sliver faces if you need the cause.
+   - Strength uses the higher of the bulk blade stress and the root fillet stress. Only the hub-slice cut planes
+     and the fixed-support face are excluded (they are modelling cuts where the stress is singular). The root
+     fillet is real geometry and is never excluded.
+   - Look at the stress image and confirm the peak is on the blade or root fillet, not on a cut face or the
+     fixed support. If it is on a cut or support face, say the number is a modelling artifact and do not use it
+     for PASS.
+4. If the tool says Mechanical must be closed before the next app, call `disconnect {}`.
 
-Print: `STAGE 6 | peak <s> <unit> | SF on yield <x> vs <min> | nodes <n> | ok`.
+Print: `STAGE 6 | governing <bulk or fillet> <s> <unit> | SF on yield <x> vs <min> | nodes <n> | mesh change <c>% | ok`.
 
-Fidelity recorded automatically: one blade on a hub slice (no disk), centrifugal load only (no aero pressure,
-no thermal). Tip clearance and Campbell checks are roadmap items and stay NOT CHECKED.
+Fidelity is recorded automatically: one blade on a hub slice (no disk), centrifugal load only (no aero pressure,
+no thermal). Running clearance and Campbell checks are not simulated and stay NOT CHECKED.
 
 ## If the blade will not mesh
-`job_status` returns `no mesh size gave a valid mesh` with the tried sizes. The usual cause is the root fillet
-(Mechanical reports "surfaces cannot be meshed with acceptable quality"). Then: tell the user, rebuild the geometry
-with `geometry_v2.build_start {..., root_fillet: false}`, rerun spin stress, and report the result with the fidelity
-note "no root fillet". Do not quote the peak at the sharp root as a real stress; report the blade body stress away
+`job_status` returns `no mesh size gave a valid mesh` with the sizes tried. The usual cause is the root fillet
+("surfaces cannot be meshed with acceptable quality"). Then: tell the user, rebuild the geometry with
+`geometry_v2.build_start {..., root_fillet: false}`, rerun spin stress, and report with the fidelity note
+"no root fillet". Do not quote the peak at the sharp root as a real stress; report the blade body stress away
 from the root and say the root needs a filleted model.
