@@ -47,5 +47,5 @@ run folder.
 - Rotation sign depends on the geometry's wrap direction; if unsure, say so and ask, or check with the
   geometry stage's `inspect_geometry` before approval. A wrong sign runs the impeller backwards.
 - Editing case.yaml after approval invalidates it; the tools will refuse until it is re-approved.
-- If `case_validate` says the geometry or material file is not found, tell the user which file is missing and stop;
+- If a stage tool says the geometry or material file is not found, tell the user which file is missing and stop;
   do not search the computer for it.
