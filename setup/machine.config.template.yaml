@@ -1,13 +1,17 @@
-# Machine configuration for compressor-rerate-agent-v2.
-# setup.ps1 copies this to .local/rerate.config.yaml (git-ignored) and fills the <PLACEHOLDERS>.
-# Relative paths are relative to the repository root. No engineering values belong here; those go in case.yaml.
+# Machine configuration for the Ansys re-rate agent (one file per computer).
+# setup/install_runtime.py config renders this template to <install home>/machine.config.yaml, by default
+# %LOCALAPPDATA%/ansys-rerate-agent/machine.config.yaml, and fills the <PLACEHOLDERS>.
+# Relative paths below are relative to the folder that holds machine.config.yaml (the install home).
+# The tool servers find this file through the RERATE_CONFIG variable set in the Hermes profile.
+# No engineering values belong here; those go in each case.yaml.
 
 ansys:
   version: <ANSYS_VERSION>          # e.g. 261 for 2026 R1
-  root: <ANSYS_ROOT>                # folder with Framework/, fluent/, TurboGrid/ (setup reads AWP_ROOT<ver>)
+  root: <ANSYS_ROOT>                # folder with Framework/, fluent/, TurboGrid/ (setup reads AWP_ROOT<ver>);
+                                    # the tool servers set AWP_ROOT<ver> from these two keys themselves
 
 license:
-  mode: <LICENSE_MODE>              # commercial | student
+  mode: <LICENSE_MODE>              # student (one app at a time, 1M CFD cells, 128k structural nodes) | commercial
   # commercial: apps may run concurrently. Set true to still run one app at a time.
   exclusive_apps: false
 
@@ -85,8 +89,9 @@ structural_meshing:
   root_zone_fillet_multiple: 3.0
 
 paths:
-  runs_dir: runs                    # one folder per run (git-ignored)
-  work_dir: work                    # scratch for app logs and dev/debug output (git-ignored)
+  runs_dir: runs                    # one folder per run (inside the install home)
+  work_dir: work                    # scratch for app logs and debug output
+  example_data: example-data        # downloaded example data, one subfolder per example (e.g. 01_nasa_hecc)
 
 mcp:
   defaults:
