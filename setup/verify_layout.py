@@ -10,17 +10,24 @@ import re
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
-REQUIRED = ["README.md", "SETUP.md", "AGENTS.md", "LICENSE", "THIRD_PARTY_NOTICES.md", "SECURITY.md",
-            "CONTRIBUTING.md", ".gitignore", "setup.ps1", "requirements.lock", "plugins/ansys-mcp/pyproject.toml",
-            "docs/VALIDATION.md", "docs/DECISIONS.md", "docs/RELEASE_CHECKLIST.md", "docs/ROADMAP.md",
-            "docs/PROGRESS.md", "examples/01_nasa_hecc/case.yaml", "examples/01_nasa_hecc/prompt.md",
-            "agents/rerate-engineer/skills/rerate-run-v2/SKILL.md", "harnesses/hermes/rerate.config.template.yaml"]
+ROOT = Path(__file__).resolve().parents[1]
+REQUIRED = ["LICENSE", "THIRD_PARTY_NOTICES.md", "SECURITY.md", "CONTRIBUTING.md", ".gitignore",
+            "runtime/pyproject.toml", "runtime/src/rerate_mcp_v2/schema/case_schema.yaml",
+            "setup/requirements.lock", "setup/machine.config.template.yaml",
+            "setup/setup-agent/skills/ansys-host-diagnostics/SKILL.md",
+            "agent/distribution.yaml", "agent/SOUL.md", "agent/config.yaml", "agent/mcp_servers.json",
+            "agent/skills/rerate-run/SKILL.md", "agent/skills/rerate-intake/SKILL.md",
+            "agent/skills/rerate-sizing/SKILL.md", "agent/skills/rerate-geometry/SKILL.md",
+            "agent/skills/rerate-meshing/SKILL.md", "agent/skills/rerate-cfd/SKILL.md",
+            "agent/skills/rerate-structural/SKILL.md", "agent/skills/rerate-report/SKILL.md",
+            "docs/VALIDATION.md", "docs/DECISIONS.md", "docs/ROADMAP.md",
+            "examples/01_nasa_hecc/case.yaml", "examples/01_nasa_hecc/prompt.md", "examples/01_nasa_hecc/README.md",
+            "examples/01_nasa_hecc/expected.md", "tests/test_core.py"]
 SKIP_DIRS = {".git", ".venv", ".local", "runs", "work", "__pycache__", "examples"}
 SCAN_EXT = {".py", ".md", ".yaml", ".yml", ".ps1", ".toml", ".txt", ".json"}
 # docs that intentionally discuss these values (scan report, validation evidence, history) are exempted by name
-EXEMPT = {"docs/VALIDATION.md", "docs/PROGRESS.md", "docs/RELEASE_CHECKLIST.md", "scripts/setup/verify_layout.py",
-          "requirements.lock", "THIRD_PARTY_NOTICES.md"}
+EXEMPT = {"docs/VALIDATION.md", "docs/PROGRESS.md", "docs/RELEASE_CHECKLIST.md", "setup/verify_layout.py",
+          "setup/requirements.lock", "THIRD_PARTY_NOTICES.md"}
 PATTERNS = {
     "HECC number": r"(?<![\d.])(10\.85|11\.5|4\.68|4\.60|0\.609|0\.650|21789|21,789|22878|75842)(?![\d])",
     "HECC test condition": r"120\s?kPa|120000|11\s?psia",
@@ -45,7 +52,7 @@ def scan() -> list[str]:
                 for m in re.finditer(pat, txt):
                     line = txt.count("\n", 0, m.start()) + 1
                     out.append(f"{rel}:{line}: {name}: '{m.group(0)}'")
-        if rel.startswith("plugins/") and p.suffix == ".py" and re.search(ARBITRARY, txt):
+        if rel.startswith("runtime/") and p.suffix == ".py" and re.search(ARBITRARY, txt):
             out.append(f"{rel}: defines an arbitrary-code tool")
     return out
 
