@@ -50,6 +50,9 @@ def ps(cmd: str, timeout: int = 90) -> str:
 
 
 def enter_work_dir() -> Path:
+    """Startup hook used by every server: set AWP_ROOT<ver> from the machine config if missing (so the MCP host
+    only has to pass RERATE_CONFIG), then change into the work folder."""
+    config.ensure_awp_root()
     w = config.work_root()
     os.chdir(w)
     return w
