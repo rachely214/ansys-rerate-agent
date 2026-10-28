@@ -6,7 +6,7 @@ import xml.dom.minidom
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "plugins" / "ansys-mcp" / "src"))
+sys.path.insert(0, str(ROOT / "runtime" / "src"))
 
 from rerate_mcp_v2 import handcalc, materials, units  # noqa: E402
 

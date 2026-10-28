@@ -10,7 +10,7 @@ import numpy as np
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "plugins" / "ansys-mcp" / "src"))
+sys.path.insert(0, str(ROOT / "runtime" / "src"))
 
 from rerate_mcp_v2 import case as casemod  # noqa: E402
 from rerate_mcp_v2 import report, units  # noqa: E402
