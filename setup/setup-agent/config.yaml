@@ -1,0 +1,17 @@
+# Setup assistant behaviour defaults. No model, provider, secrets or MCP servers: the user's model choice is
+# copied in when the profile is installed, and this assistant uses only the terminal and file tools.
+agent:
+  max_turns: 200
+  reasoning_effort: medium
+  verbose: false
+
+display:
+  streaming: true
+  compact: false
+  background_process_notifications: concise
+
+compression:
+  enabled: true
+  threshold: 0.5
+  protect_first_n: 3
+  protect_last_n: 20

@@ -1,0 +1,9 @@
+name: ansys-rerate-setup
+version: 0.1.0
+description: >-
+  Setup assistant for the Ansys compressor re-rate demo: checks this computer, installs the tool runtime, wires
+  the demo agent profile, and hands over when the deterministic health check is ALL GREEN.
+hermes_requires: ">=0.21.0"
+author: ansys-rerate-agent maintainers
+license: Apache-2.0
+# No env_requires: the model is chosen during Hermes setup; this assistant never handles keys.

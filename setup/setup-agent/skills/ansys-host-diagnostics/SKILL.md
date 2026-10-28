@@ -1,49 +1,62 @@
 ---
-name: ansys-mcp-host-v2
-description: "Use when setting up or troubleshooting the V2 Ansys MCP servers for the re-rate workflow."
-version: 2.0.0
+name: ansys-host-diagnostics
+description: "Use when an Ansys app will not start or a license or desktop problem blocks the re-rate demo. Plain checks and fixes."
+version: 1.0.0
 license: Apache-2.0
 metadata:
   hermes:
-    tags: [ansys, mcp, setup, troubleshooting, v2]
-    related_skills: [rerate-run-v2]
+    tags: [ansys, license, desktop, troubleshooting]
+    related_skills: [setup-run, setup-diagnose]
 ---
 
-# Ansys MCP servers (V2): setup and troubleshooting
+# Ansys host diagnostics
 
-Servers (stdio by default, or HTTP from the config): `case_v2`, `vista_v2`, `geometry_v2`, `turbogrid_v2`,
-`fluent_v2`, `mechanical_v2`. Package: `plugins/ansys-mcp` (`rerate_mcp_v2`). One config file:
-`.local/rerate.config.yaml` (or env `RERATE_V2_CONFIG`). Install and registration: root `SETUP.md`.
+For the computer the demo runs on. The demo agent's six tool servers are `case_v2`, `vista_v2`, `geometry_v2`,
+`turbogrid_v2`, `fluent_v2`, `mechanical_v2` (package `rerate_mcp_v2`, installed in the install home's `venv`).
+Their settings are in `machine.config.yaml` in the install home (`%LOCALAPPDATA%\ansys-rerate-agent`).
 
-## Readiness (stage 0)
-1. Confirm the tools are listed (six servers, about 26 tools). If none show, the Hermes profile is wrong or the
-   servers failed to start: run `python scripts/setup/doctor.py --mcp` from the repo `.venv`.
-2. `doctor.py --case <case.yaml>` also checks the case and that its geometry and material files exist.
+Success: the health check's ansys, config and mcp groups are PASS.
 
-## Run modes, timeouts and the desktop session
-- `apps.<app>.mode` in the config: `gui` (visible windows, demos) or `headless`. Mechanical runs batch, Fluent
-  no-GUI, TurboGrid meshing is always headless (its window is only a demo view), Vista sizing is always batch.
-  Discovery has no supported headless mode for scripted geometry and refuses with a clear message.
-- GUI apps need a connected, unlocked Windows session. A closed Remote Desktop window disconnects the session:
-  Discovery then hangs at launch ("Direct3DCreate9Ex failed" in its log). Every GUI start tool checks the
-  session first and returns `desktop_disconnected` / `desktop_locked` instead of hanging.
+## Desktop session
+- Every Ansys window needs an active, unlocked Windows desktop. A closed Remote Desktop window disconnects the
+  session: Discovery then hangs at launch ("Direct3DCreate9Ex failed"), Fluent cannot import the mesh, and Fluent
+  has crashed mid-solve with "connection reset". The tools check the session and refuse with
+  `desktop_disconnected` or `desktop_locked`.
+- Fix: sign in at the computer, or keep the Remote Desktop window open (minimised is fine). Turn off the screen
+  lock for the length of a run.
+- Optional: `apps.<app>.mode: headless` in machine.config.yaml runs Fluent without a window and Mechanical in
+  batch. TurboGrid meshing and Vista sizing always run in the background. Discovery has no headless mode.
 - `apps.<app>.launch_timeout_s` and `job_timeout_s` bound every launch and background job; a job past its limit
-  shows state `timeout` and the agent must stop and report.
-- After pulling a newer version run `python scripts/setup/upgrade_config.py` to add new config keys.
+  shows `timeout`.
 
-## Known behaviours
-- Student license: one solver seat. With `license.mode: student` every stage closes the other Ansys apps first.
-- Discovery 2026 R1 with ansys-geometry-core 0.18: the V1 gRPC protocol breaks `run_script_file` ("File X.py does
-  not exist"); geometry_v2 forces `proto_version="v0"`.
-- MCP hosts may start servers with cwd = System32, where TurboGrid/Fluent cannot write logs. Servers chdir to
-  `paths.work_dir` at start.
-- Fluent GPU: set `fluent.gpu: true` only with a license that includes it; on Student the GPU solver is denied.
-- `license_denials` in a tool error comes from `%TEMP%/.ansys/licdebug.*.out`; quote it to the user.
-- Stale Fluent `mpiexec`/`hydra_pmi_proxy` processes block relaunch: `fluent_v2.disconnect` kills them.
-- No tool runs arbitrary code inside an app. If you need something the tools cannot do, say so; do not work
-  around it with shell scripts that drive the apps.
+## Licensing
+- Student license: one Ansys app at a time (`license.mode: student` makes every stage close other apps first),
+  1M CFD cells, 128k structural nodes, no Fluent GPU solver. Set `fluent.gpu: true` only with a license that
+  includes it.
+- License denials are logged in `%TEMP%\.ansys\licdebug.*.out`; the health check reports recent ones. Quote the
+  line to the user. Common causes: another Ansys app still open (Student), license server unreachable (commercial).
+- Never change license settings or files; a license administrator must fix commercial license problems.
 
-## Running in a sandbox (e.g. NVIDIA OpenShell) with Ansys on Windows
-Set `mcp.servers.<name>: {transport: http, host: 0.0.0.0, port: <p>}` in the config, start each server on the
-Windows host (`python -m rerate_mcp_v2.servers.<x>_server`), and register them in the sandboxed agent by URL.
-Not yet validated (see docs/VALIDATION.md).
+## Apps left running
+- Crashed Fluent sessions leave `fluent`, `cx2610`, `fl2610`, `mpiexec` or `hydra_pmi_proxy` processes that hold
+  the license. Ask the user before closing them (Task Manager, or `taskkill /F /IM <name>.exe` in a Windows
+  command prompt).
+
+## Tool servers
+- After `install_runtime.py packages` or `profile`, Hermes may still run old server processes. The user must close
+  Hermes completely (tray icon too) and reopen it; the check's `stale_servers` item shows this.
+- Hermes gives tool servers a reduced environment. The servers get everything from `RERATE_CONFIG` (set by the
+  installer); do not add other variables by hand.
+- New or changed tools appear only in a NEW chat after Hermes restarts.
+- After updating the repository, run `PY setup/upgrade_config.py` to add new settings to machine.config.yaml.
+
+## Known app behaviours (handled in the tools; listed so you recognise them)
+- Discovery 2026 R1 needs the older gRPC protocol ("File X.py does not exist" otherwise); the geometry tool forces it.
+- Servers started from `C:\Windows\System32` cannot write logs there; they switch to the install home's `work`.
+- No tool runs arbitrary code inside an app. Do not work around a missing capability with scripts that drive the
+  apps.
+
+## Agent elsewhere, Ansys here (not validated)
+Set `mcp.servers.<name>: {transport: http, host: 127.0.0.1, port: <p>}` in machine.config.yaml, start each
+server on this computer, and register them by URL in the remote agent. The servers have no authentication: keep
+them on a private address.
