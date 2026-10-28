@@ -1,7 +1,7 @@
 [project]
-name = "rerate-mcp-v2"
-version = "0.2.0"
-description = "MCP servers (transport, app control, file conversion, checks) for the agentic compressor re-rate workflow, V2"
+name = "ansys-rerate-runtime"
+version = "0.1.0"
+description = "MCP servers (app control, file conversion, checks) for the ansys-rerate-agent compressor re-rate workflow"
 requires-python = ">=3.12,<3.14"
 license = { text = "Apache-2.0" }
 dependencies = [
@@ -33,5 +33,9 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools]
+include-package-data = true
+
 [tool.setuptools.package-data]
+# Needed at run time; a non-editable install must ship them.
 rerate_mcp_v2 = ["app_scripts/*.py", "schema/*.yaml"]
