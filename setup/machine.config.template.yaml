@@ -67,7 +67,7 @@ structural_meshing:
   short_edge_fraction: 0.002
   # Mesh method. "patch_independent_tet" (tetrahedra, patch-independent algorithm) ignores small CAD faces/edges
   # below the defeaturing tolerance instead of following them; the default patch-conforming mesher failed on the
-  # single-blade body ("surfaces cannot be meshed with acceptable quality", experiments S2-S5 in PROGRESS.md).
+  # single-blade body ("surfaces cannot be meshed with acceptable quality", development experiments S2-S5, notes not included).
   method: patch_independent_tet
   element_order: quadratic
   # minimum element size as a fraction of the requested size (prevents runaway local refinement)

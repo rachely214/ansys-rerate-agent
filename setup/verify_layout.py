@@ -14,6 +14,10 @@ ROOT = Path(__file__).resolve().parents[1]
 REQUIRED = ["LICENSE", "THIRD_PARTY_NOTICES.md", "SECURITY.md", "CONTRIBUTING.md", ".gitignore",
             "runtime/pyproject.toml", "runtime/src/rerate_mcp_v2/schema/case_schema.yaml",
             "setup/requirements.lock", "setup/machine.config.template.yaml",
+            "START-HERE.md", "README.md", "docs/HOW-IT-WORKS.md", "docs/TROUBLESHOOTING.md",
+            "setup/check.py", "setup/install_runtime.py",
+            "setup/setup-agent/SOUL.md", "setup/setup-agent/distribution.yaml", "setup/setup-agent/config.yaml",
+            "setup/setup-agent/skills/setup-run/SKILL.md", "setup/setup-agent/skills/setup-diagnose/SKILL.md",
             "setup/setup-agent/skills/ansys-host-diagnostics/SKILL.md",
             "agent/distribution.yaml", "agent/SOUL.md", "agent/config.yaml", "agent/mcp_servers.json",
             "agent/skills/rerate-run/SKILL.md", "agent/skills/rerate-intake/SKILL.md",
@@ -26,7 +30,7 @@ REQUIRED = ["LICENSE", "THIRD_PARTY_NOTICES.md", "SECURITY.md", "CONTRIBUTING.md
 SKIP_DIRS = {".git", ".venv", ".local", "runs", "work", "__pycache__", "examples"}
 SCAN_EXT = {".py", ".md", ".yaml", ".yml", ".ps1", ".toml", ".txt", ".json"}
 # docs that intentionally discuss these values (scan report, validation evidence, history) are exempted by name
-EXEMPT = {"docs/VALIDATION.md", "docs/PROGRESS.md", "docs/RELEASE_CHECKLIST.md", "setup/verify_layout.py",
+EXEMPT = {"docs/VALIDATION.md", "setup/verify_layout.py",
           "setup/requirements.lock", "THIRD_PARTY_NOTICES.md"}
 PATTERNS = {
     "HECC number": r"(?<![\d.])(10\.85|11\.5|4\.68|4\.60|0\.609|0\.650|21789|21,789|22878|75842)(?![\d])",

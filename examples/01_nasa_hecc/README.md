@@ -11,6 +11,11 @@ The agent reads three short documents in `inputs/`, drafts a case file, asks you
 every stage live in Ansys: 1D sizing (Vista CCD), geometry change (Discovery), passage mesh (TurboGrid), CFD
 (Fluent) and spin stress (Mechanical). It ends with a pass/fail report.
 
+## How to run it
+
+First finish setup (see `START-HERE.md` at the repository root): the health check must say ALL GREEN. Then open
+Hermes with the profile `ansys-rerate-agent`, start a new chat and paste the prompt from `prompt.md`.
+
 ## Files
 
 | File | What it is |

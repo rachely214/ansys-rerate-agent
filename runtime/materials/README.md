@@ -1,20 +1,15 @@
-# Material library files (user-supplied, never in the repository)
+# Material files
 
-`case.yaml` points `material.library_file` at an Ansys Engineering Data XML that contains `material.name`.
-No material files ship with this repository: Ansys library data is Ansys-derived content (see
-docs/RELEASE_CHECKLIST.md). Keep your files outside git, for example in the git-ignored `work/materials/` folder.
+`case.yaml` points `material.library_file` at a material file. Two kinds work:
 
-To create one from your own Ansys installation:
-1. Open Ansys Workbench > Engineering Data (or Granta materials data if licensed).
-2. Find or add the material (e.g. Ti-6Al-4V). Check density, Young's modulus, Poisson's ratio and the tensile
-   yield strength against the customer's material specification.
-3. Export it: Engineering Data > right-click the material > Export Engineering Data, save as XML, e.g.
-   `work/materials/<material>.xml` (example 01 expects `work/materials/ti64.xml`).
-4. Point `material.library_file` in `case.yaml` at that file and put the same yield strength into
-   `material.yield_strength` with its source. Example 01 uses 134,885 psi, the value in the file used during
-   validation; if your file differs, update the case and re-approve it.
+1. **A small YAML file with cited public data** (recommended). Example 01 uses
+   `examples/01_nasa_hecc/materials/ti6al4v_public.yaml`. The structural stage converts it to the Engineering Data
+   XML that Mechanical reads, at run time, into the run folder (`rerate_mcp_v2.materials`). Required keys: `name`,
+   `density_kg_m3`, `youngs_modulus_pa`, `poisson_ratio`, `tensile_yield_pa`; give a source for each value.
+2. **An Engineering Data XML** exported from your own Ansys installation (Workbench > Engineering Data >
+   right-click the material > Export Engineering Data). It is used as is. Ansys library data is Ansys content:
+   keep such files outside git (for example in the install home's `work\` folder). XML files in this folder are
+   git-ignored.
 
-One material can also be extracted from a larger Engineering Data XML in your own installation with
-`python scripts/dev/extract_material.py <library.xml> "<name>" <out.xml>`.
-
-`doctor.py --case <case.yaml>` reports a missing material file.
+Whichever you use, put the same yield strength into `material.yield_strength` in the case, with its source, and
+re-approve the case if you change it.

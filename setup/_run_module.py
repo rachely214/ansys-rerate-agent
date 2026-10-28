@@ -1,4 +1,4 @@
-"""Run a module as __main__ (used by doctor.py to start an MCP server over stdio)."""
+"""Run a module as __main__ (used by dev/mcp_call.py to start an MCP server over stdio)."""
 import runpy
 import sys
 

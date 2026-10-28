@@ -1,9 +1,10 @@
 """Developer harness: call V2 MCP tools over real stdio (same transport as Hermes), one call per invocation.
 
-  python scripts/dev/mcp_call.py <server> <tool> '<json args>'
+  python dev/mcp_call.py <server> <tool> '<json args>'
 
 The server process is kept alive between calls in a background broker so app sessions (Fluent, Mechanical,
-Discovery) persist: `python scripts/dev/mcp_call.py --broker` starts it (writes .local/broker.port).
+Discovery) persist: `python dev/mcp_call.py --broker` starts it (writes work/broker.port next to machine.config.yaml).
+Run it with the install-home venv Python; it uses the same machine.config.yaml as the agent.
 This is a test aid for validation runs without an LLM; it is not used by the agent.
 """
 from __future__ import annotations
@@ -15,23 +16,24 @@ import socket
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
-PORT_FILE = ROOT / ".local" / "broker.port"
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.append(str(ROOT / "runtime" / "src"))  # falls back to the repo copy if the runtime is not installed
+from rerate_mcp_v2 import config  # noqa: E402
+
+PORT_FILE = config.config_dir() / "work" / "broker.port"  # install home (or the folder of RERATE_CONFIG)
 SERVERS = ["case_v2", "vista_v2", "geometry_v2", "turbogrid_v2", "fluent_v2", "mechanical_v2"]
 
 
 async def broker():
     from fastmcp import Client
     from fastmcp.client.transports import PythonStdioTransport
-    sys.path.insert(0, str(ROOT / "plugins" / "ansys-mcp" / "src"))
-    from rerate_mcp_v2 import config
-    env = dict(os.environ, RERATE_V2_CONFIG=str(config.config_path()))
+    env = dict(os.environ, RERATE_CONFIG=str(config.config_path()))
     clients = {}
 
     async def get(name):
         if name not in clients:
             mod = f"rerate_mcp_v2.servers.{name.replace('_v2', '')}_server"
-            t = PythonStdioTransport(script_path=str(ROOT / "scripts" / "setup" / "_run_module.py"), args=[mod],
+            t = PythonStdioTransport(script_path=str(ROOT / "setup" / "_run_module.py"), args=[mod],
                                      python_cmd=sys.executable, env=env, keep_alive=True)
             c = Client(t, timeout=120)  # no V2 tool may block longer; a hit here is a bug to report
             await c.__aenter__()

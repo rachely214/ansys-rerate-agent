@@ -47,7 +47,8 @@ FAILs from simplified models as `FAIL (model-limited)`; the verdict counts them 
 launch. Fluent GPU is a config switch. Development and testing used Student (see VALIDATION.md).
 
 ## DEC-10 Separate Hermes profile
-Setup registers servers and skill folders in a dedicated profile (`rerate-v2` by default). It never edits the
+Setup installs the demo agent as its own Hermes profile (`ansys-rerate-agent`; the earlier development layout
+used `rerate-v2`) and writes the tool servers into that profile only. It never edits the
 default profile, so an existing setup (including V1) stays unchanged.
 
 ## DEC-11 Transport from config
