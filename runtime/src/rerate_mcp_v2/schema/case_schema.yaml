@@ -1,0 +1,91 @@
+# Case schema for the compressor re-rate workflow (V2).
+# Every machine-specific value lives in a per-compressor case.yaml that follows this schema.
+# Each quantity is a mapping: {value: <number>, unit: <unit string>, source: "<document, table/section>"}.
+# Fields marked required: the workflow refuses to run a stage that needs a missing required field.
+# There are NO defaults here on purpose: a value the documents do not give must be asked for, never assumed.
+
+schema_version: 2
+
+fields:
+  case.name:                          {required: true, type: text}
+  case.description:                   {required: false, type: text}
+
+  operating_point.speed:              {required: true, kind: speed, stages: [sizing, cfd, structural]}
+  operating_point.inlet_total_pressure:     {required: true, kind: pressure, stages: [cfd, report]}
+  operating_point.inlet_total_temperature:  {required: true, kind: temperature, stages: [cfd, report]}
+  operating_point.reference_pressure:       {required: true, kind: pressure, stages: [report],
+                                             note: "pressure used to correct flow (standard day, e.g. 1 atm)"}
+  operating_point.reference_temperature:    {required: true, kind: temperature, stages: [report]}
+  operating_point.rotation_sign:      {required: true, type: int, allowed: [-1, 1], stages: [cfd],
+                                       note: "sign of the rotation about +z for the meshed geometry"}
+
+  baseline.corrected_flow:            {required: true, kind: mass_flow, stages: [sizing, report]}
+  baseline.mass_flow:                 {required: true, kind: mass_flow, stages: [sizing],
+                                       note: "physical mass flow used by the 1D sizing tool for the baseline duty"}
+  baseline.pressure_ratio:            {required: true, kind: dimensionless, stages: [sizing, report]}
+  baseline.efficiency_tt:             {required: true, kind: dimensionless, stages: [report]}
+  baseline.surge_margin:              {required: false, kind: dimensionless, stages: [report]}
+  baseline.shaft_power:               {required: false, kind: power, stages: [report]}
+
+  targets.corrected_flow_min:         {required: true, kind: mass_flow, stages: [sizing, report]}
+  targets.pressure_ratio_min:         {required: true, kind: dimensionless, stages: [sizing, report]}
+  targets.efficiency_tt_min:          {required: true, kind: dimensionless, stages: [report]}
+  targets.surge_margin_min:           {required: false, kind: dimensionless, stages: [report]}
+  targets.shaft_power_increase_max:   {required: false, kind: dimensionless, stages: [report]}
+
+  geometry.adapter:                   {required: true, type: text, allowed: [nasa_tables, bladegen_inf, step],
+                                       stages: [geometry]}
+  geometry.source:                    {required: true, type: path, stages: [geometry],
+                                       note: "path relative to the case file, or absolute"}
+  geometry.adapter_options:           {required: false, type: mapping, stages: [geometry]}
+  geometry.main_blades:               {required: true, type: int, stages: [sizing, geometry, cfd]}
+  geometry.splitter_blades:           {required: true, type: int, stages: [sizing, geometry]}
+  geometry.impeller_exit_diameter:    {required: true, kind: length, stages: [sizing, report]}
+  geometry.exit_blade_height:         {required: true, kind: length, stages: [sizing, geometry, report]}
+  geometry.inlet_hub_diameter:        {required: false, kind: length, stages: [sizing]}
+  geometry.inlet_shroud_diameter:     {required: false, kind: length, stages: [sizing]}
+  geometry.tip_clearance:             {required: true, kind: length, stages: [meshing],
+                                       note: "impeller shroud tip gap applied in the CFD mesh (constant along the tip); write 0 only if the real impeller is shrouded"}
+
+  limits.exit_blade_height_max:       {required: true, kind: length, stages: [sizing, report]}
+  limits.impeller_exit_diameter_max:  {required: true, kind: length, stages: [report]}
+  limits.speed_max_fraction:          {required: true, kind: dimensionless, stages: [structural],
+                                       note: "mechanical overspeed as a fraction of 100% speed, e.g. 1.05"}
+  limits.diffuser_height_match_tol:   {required: false, kind: length, stages: [report]}
+
+  material.name:                      {required: true, type: text, stages: [structural]}
+  material.library_file:              {required: true, type: path, stages: [structural],
+                                       note: "Ansys engineering-data XML containing material.name"}
+  material.yield_strength:            {required: true, kind: pressure, stages: [structural, report]}
+
+  structural.safety_factor_min:       {required: true, kind: dimensionless, stages: [structural, report]}
+  structural.hub_slice_depth:         {required: true, kind: length, stages: [geometry, structural]}
+  structural.root_fillet_radius:      {required: false, kind: length, stages: [geometry]}
+  structural.max_mesh_nodes:          {required: false, type: int, stages: [structural],
+                                       note: "license node limit; Student is 128000"}
+
+  cfd.outlet_static_pressure:         {required: true, kind: pressure, stages: [cfd],
+                                       note: "static pressure at the model outlet radius. For an impeller-only model use the IMPELLER-EXIT static (vaneless space), not stage-exit data; give the source"}
+  cfd.outlet_radius_ratio:            {required: true, kind: dimensionless, stages: [cfd],
+                                       note: "model outlet radius / impeller trailing-edge radius; must match where outlet_static_pressure was measured"}
+  cfd.calibration.flow_tol:           {required: true, kind: dimensionless, stages: [cfd, report],
+                                       note: "max relative error of baseline corrected flow vs measured"}
+  cfd.calibration.pr_tol:             {required: true, kind: dimensionless, stages: [cfd, report]}
+  cfd.calibration.eta_tol:            {required: true, kind: dimensionless, stages: [cfd, report],
+                                       note: "absolute efficiency points (e.g. 0.02)"}
+  cfd.calibration.pr_reference:       {required: true, type: text, allowed: [impeller, stage], stages: [cfd, report],
+                                       note: "measured PR/eta used for calibration: impeller-alone data if the model has no diffuser"}
+  baseline.impeller_pressure_ratio:   {required: false, kind: dimensionless, stages: [report],
+                                       note: "measured impeller-alone total pressure ratio (inlet to impeller exit)"}
+  baseline.impeller_efficiency_tt:    {required: false, kind: dimensionless, stages: [report]}
+  cfd.convergence.mass_imbalance_max: {required: true, kind: dimensionless, stages: [cfd]}
+  cfd.convergence.stability_tol:      {required: true, kind: dimensionless, stages: [cfd],
+                                       note: "max relative change of flow, PR, eta over the stability window"}
+  cfd.convergence.window_iterations:  {required: true, type: int, stages: [cfd]}
+  cfd.max_iterations:                 {required: true, type: int, stages: [cfd]}
+  cfd.mesh_size_factor:               {required: true, type: number, stages: [meshing]}
+  cfd.turbulence_model:               {required: true, type: text, allowed: [sst, k-epsilon], stages: [cfd]}
+
+  mechanical_criteria.tip_clearance_min:    {required: false, kind: length, stages: [report]}
+  mechanical_criteria.campbell_excitation_orders: {required: false, type: list, stages: [report]}
+  mechanical_criteria.campbell_margin:      {required: false, kind: dimensionless, stages: [report]}

@@ -1,0 +1,18 @@
+# Public source of the example-01 geometry (NASA Technical Reports Server, distribution: PUBLIC).
+# Used by scripts/setup/fetch_example_data.py. The data is downloaded, never committed.
+citation: "Medic G. et al., NASA/CR-2014-218114/REV1 (High Efficiency Centrifugal Compressor for Rotorcraft
+  Applications), supplemental files. NASA Glenn Research Center. NTRS 20180001472."
+record: https://ntrs.nasa.gov/citations/20180001472
+url: https://ntrs.nasa.gov/api/citations/20180001472/downloads/20180001472-TN31660-NASA-CR-2014-218114REV1-SUPPL.zip
+file_name: 20180001472-TN31660-NASA-CR-2014-218114REV1-SUPPL.zip
+bytes: 4926760984          # about 4.9 GB; download resumes if interrupted
+members_prefix: 20180001472-TN31660-NASA-CR-2014-218114REV1-SUPPL/AppendixE.4_HotCoordinates/
+extract_to: geometry_data
+expected_files:
+  - AppendixE.4_HotCoordinates/table_C_1_flowpath_hub.txt
+  - AppendixE.4_HotCoordinates/table_C_2_flowpath_shroud.txt
+  - AppendixE.4_HotCoordinates/table_C_3_impeller_main_blade_section_1.txt
+  - AppendixE.4_HotCoordinates/table_C_13_impeller_main_blade_section_11.txt
+  - AppendixE.4_HotCoordinates/table_C_14_impeller_splitter_blade_section_1.txt
+  - AppendixE.4_HotCoordinates/table_C_24_impeller_splitter_blade_section_11.txt
+  - AppendixE.4_HotCoordinates/README_ExportControlClassification.txt

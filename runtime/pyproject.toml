@@ -1,0 +1,37 @@
+[project]
+name = "rerate-mcp-v2"
+version = "0.2.0"
+description = "MCP servers (transport, app control, file conversion, checks) for the agentic compressor re-rate workflow, V2"
+requires-python = ">=3.12,<3.14"
+license = { text = "Apache-2.0" }
+dependencies = [
+    "fastmcp>=2.10",
+    "PyYAML>=6",
+    "numpy>=1.26",
+]
+
+[project.optional-dependencies]
+ansys = [
+    "ansys-fluent-core>=0.43",
+    "ansys-turbogrid-core>=0.9",
+    "ansys-mechanical-core>=0.13",
+    "ansys-geometry-core>=0.18",
+]
+
+[project.scripts]
+rerate-case-mcp-v2 = "rerate_mcp_v2.servers.case_server:main"
+rerate-vista-mcp-v2 = "rerate_mcp_v2.servers.vista_server:main"
+rerate-geometry-mcp-v2 = "rerate_mcp_v2.servers.geometry_server:main"
+rerate-turbogrid-mcp-v2 = "rerate_mcp_v2.servers.turbogrid_server:main"
+rerate-fluent-mcp-v2 = "rerate_mcp_v2.servers.fluent_server:main"
+rerate-mechanical-mcp-v2 = "rerate_mcp_v2.servers.mechanical_server:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+rerate_mcp_v2 = ["app_scripts/*.py", "schema/*.yaml"]

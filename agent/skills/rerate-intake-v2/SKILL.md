@@ -1,0 +1,43 @@
+---
+name: rerate-intake-v2
+description: "Use when drafting a compressor re-rate case.yaml from customer documents (V2)."
+version: 2.0.0
+license: Apache-2.0
+metadata:
+  hermes:
+    tags: [compressor, rerate, intake, case, v2]
+    related_skills: [rerate-run-v2]
+---
+
+# Intake: from documents to an approved case.yaml
+
+Input: the customer's re-rate request, baseline datasheet, casing/limit sheet, and a geometry source.
+Output: an approved `case.yaml` beside the inputs. Schema (fields, units, which stage needs what):
+`plugins/ansys-mcp/src/rerate_mcp_v2/schema/case_schema.yaml`. Read it first.
+
+## Method
+1. Read every document fully. List each number you can use, with document and section.
+2. Write `case.yaml` next to the documents. Every quantity is `{value, unit, source}`.
+   - `source` names the document and the table/section, e.g. `"02 datasheet, Operating point"`.
+   - Use the document's own units; the tools convert.
+   - When a value is your choice (not in the documents), start its source with `ENGINEERING CHOICE:` and say why.
+     Typical ones: outlet static pressure for the passage CFD, hub-slice depth, fillet radius, inlet temperature
+     if only "standard day" is implied. Never invent targets or limits.
+3. `baseline.mass_flow` is the physical flow the 1D tool uses for the baseline duty. If the datasheet gives only
+   corrected flow, convert at the 1D tool's inlet condition and say so in the source.
+4. Geometry: pick the adapter that matches the source (`nasa_tables` or `bladegen_inf`). A STEP solid alone is not
+   enough (see docs/DECISIONS.md DEC-04); ask for a BladeGen/curve export. Adapter options describe the files
+   (units, axis conventions); read them from the data's own documentation.
+5. Call `case_validate`. Fix blocking issues you can fix from the documents. For anything still missing,
+   STOP and ask the engineer one consolidated question listing each missing field and why it is needed.
+6. Show the engineer the full value table from `case_validate.values`: Field | Value | Unit | Source, with the
+   ENGINEERING CHOICE rows called out. Ask for approval in one clear question.
+7. Only after an explicit "approve" (or corrections, then re-validate and re-show), call
+   `case_approve {case_path, approved_by}` with the name they give, then `start_run {case_path}`.
+
+## Pitfalls
+- Do not reuse numbers from `examples/` for a different machine. Each case stands alone.
+- Corrected flow needs a reference pressure and temperature: put them in the case explicitly.
+- Rotation sign depends on the geometry's wrap direction; if unsure, say so and ask, or check with the
+  geometry stage's `inspect_geometry` before approval.
+- Editing case.yaml after approval invalidates it; the tools will refuse until re-approved.

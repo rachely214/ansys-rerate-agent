@@ -1,0 +1,95 @@
+# Example case: NASA HECC re-rate (synthetic re-rate request on published NASA data).
+# Every value carries its source. "ENGINEERING CHOICE" marks values the documents do not give, chosen by the
+# agent and approved by the engineer. Approval block is added by case_approve; any edit invalidates it.
+schema_version: 2
+case:
+  name: NASA-HECC-rerate
+  description: NASA High Efficiency Centrifugal Compressor, vaned diffuser, +6% corrected flow inside the casing.
+
+operating_point:
+  speed: {value: 21789, unit: rpm, source: "01_rerate_request.md New duty; 02_baseline_datasheet.md Operating point"}
+  inlet_total_pressure: {value: 11.0, unit: psia, source: "02_baseline_datasheet.md: test inlet pressure about 11 psia (all measured values at this condition)"}
+  inlet_total_temperature: {value: 288.15, unit: K, source: "ENGINEERING CHOICE: standard day; 01_rerate_request.md power note uses standard-day inlet"}
+  reference_pressure: {value: 14.696, unit: psia, source: "standard day (corrected-flow definition)"}
+  reference_temperature: {value: 288.15, unit: K, source: "standard day (corrected-flow definition)"}
+  rotation_sign: {value: 1, source: "derived from the blade geometry: after mirror_theta the blades wrap toward -theta (dtheta/dz < 0 at the LE, dtheta/dr < 0 at the TE), so a backswept impeller must rotate toward +theta (omega > 0 about +z). The earlier -1 ran the impeller backwards (PROGRESS.md C15)"}
+
+baseline:
+  corrected_flow: {value: 10.85, unit: lbm/s, source: "02_baseline_datasheet.md: inlet corrected flow, measured"}
+  mass_flow: {value: 4.92, unit: kg/s, source: "10.85 lbm/s converted; Vista input for baseline duty (corrected = physical at Vista standard inlet)"}
+  pressure_ratio: {value: 4.68, unit: "-", source: "02_baseline_datasheet.md: total pressure ratio, measured"}
+  efficiency_tt: {value: 0.822, unit: "-", source: "02_baseline_datasheet.md: adiabatic efficiency t-t, measured"}
+  surge_margin: {value: 7.5, unit: "%", source: "02_baseline_datasheet.md: stability margin at 100% speed"}
+  shaft_power: {value: 961, unit: kW, source: "01_rerate_request.md: calculated, see power note"}
+  impeller_efficiency_tt: {value: 0.875, unit: "-", source: "Braunscheidel et al., AIAA 2014-3632, Sec. 'Impeller-alone efficiency': measured impeller t-t adiabatic efficiency near 87.5 % throughout the 100 % Nc flow range"}
+
+targets:
+  corrected_flow_min: {value: 11.5, unit: lbm/s, source: "01_rerate_request.md New duty table"}
+  pressure_ratio_min: {value: 4.60, unit: "-", source: "01_rerate_request.md New duty table"}
+  efficiency_tt_min: {value: 0.82, unit: "-", source: "01_rerate_request.md New duty table"}
+  surge_margin_min: {value: 10, unit: "%", source: "01_rerate_request.md New duty table"}
+  shaft_power_increase_max: {value: 6, unit: "%", source: "01_rerate_request.md: driver limit"}
+
+geometry:
+  adapter: nasa_tables
+  source: geometry_data/AppendixE.4_HotCoordinates
+  adapter_options:
+    units: in
+    mirror_theta: true
+    inlet_axial_trim: -1.0
+    exit_radius_extent: 9.15
+    te_cap_tolerance: 0.012
+    n_sets: 15
+    hub_file: "table_C_1_*.txt"
+    shroud_file: "table_C_2_*.txt"
+    main_sections: ["table_C_3_*.txt", "table_C_4_*.txt", "table_C_5_*.txt", "table_C_6_*.txt", "table_C_7_*.txt",
+                    "table_C_8_*.txt", "table_C_9_*.txt", "table_C_10_*.txt", "table_C_11_*.txt", "table_C_12_*.txt",
+                    "table_C_13_*.txt"]
+    splitter_sections: ["table_C_14_*.txt", "table_C_15_*.txt", "table_C_16_*.txt", "table_C_17_*.txt",
+                        "table_C_18_*.txt", "table_C_19_*.txt", "table_C_20_*.txt", "table_C_21_*.txt",
+                        "table_C_22_*.txt", "table_C_23_*.txt", "table_C_24_*.txt"]
+  main_blades: {value: 15, source: "02_baseline_datasheet.md: 15 main blade / splitter pairs"}
+  splitter_blades: {value: 15, source: "02_baseline_datasheet.md: 15 main blade / splitter pairs"}
+  impeller_exit_diameter: {value: 16.998, unit: in, source: "02_baseline_datasheet.md: exit diameter (shroud)"}
+  exit_blade_height: {value: 0.609, unit: in, source: "02_baseline_datasheet.md: impeller exit blade height"}
+  inlet_hub_diameter: {value: 3.19, unit: in, source: "02_baseline_datasheet.md / 03_casing_limits.md"}
+  inlet_shroud_diameter: {value: 8.479, unit: in, source: "02_baseline_datasheet.md / 03_casing_limits.md"}
+  tip_clearance: {value: 0.012, unit: in, source: "02_baseline_datasheet.md: design tip clearance 0.012 in; AIAA 2014-3632 Table 2 and Sec. III.A: all reported data were acquired as close as possible to the design exit clearance 0.012 in (measured at the impeller trailing edge, +/- 0.001 in). The NASA hot-coordinate blade tips lie on the shroud line (0.0001 in median gap), so the gap is applied in the mesh"}
+
+limits:
+  exit_blade_height_max: {value: 0.650, unit: in, source: "03_casing_limits.md: up to 0.650 in with new shroud insert"}
+  impeller_exit_diameter_max: {value: 17.00, unit: in, source: "03_casing_limits.md: 17.00 in maximum"}
+  speed_max_fraction: {value: 1.05, unit: "-", source: "03_casing_limits.md: mechanical limit 105%; 01 stress at 105% speed"}
+  diffuser_height_match_tol: {value: 0.010, unit: in, source: "03_casing_limits.md"}
+
+material:
+  name: Ti-6Al-4V
+  library_file: materials/ti6al4v_public.yaml   # public data, cited in the file; converted to Engineering Data XML at run time
+  yield_strength: {value: 120, unit: ksi, source: "MMPDS / MIL-HDBK-5J design minimum (S-basis) Fty for annealed Ti-6Al-4V; 01_rerate_request says 'same as existing impeller' (grade assumed Ti-6Al-4V: ENGINEERING CHOICE, confirm with customer)"}
+
+structural:
+  safety_factor_min: {value: 1.5, unit: "-", source: "01_rerate_request.md Mechanical acceptance criteria"}
+  hub_slice_depth: {value: 0.35, unit: in, source: "ENGINEERING CHOICE: hub band depth under the blade (disk not published)"}
+  root_fillet_radius: {value: 0.06, unit: in, source: "ENGINEERING CHOICE: fillet not published"}
+  max_mesh_nodes: 128000
+
+cfd:
+  outlet_static_pressure: {value: 228.3, unit: kPa, source: "NASA/CR-2014-218114/REV1 App. E.2 Fig. E.6: station 1b (mid vaneless, shroud/hub taps at r = 8.804 in) P1b/P01 = 3.01 +/- 0.03 at 100% Nc, 10.85 lbm/s; x 11 psia inlet total = 228.3 +/- 2.3 kPa (values digitised from the published plot)"}
+  outlet_radius_ratio: {value: 1.0358, unit: "-", source: "r = 8.804 in (App. E.2 Tables E.2/E.3 tap radius) / impeller TE radius 8.4997 in (from the geometry)"}
+  max_iterations: 3000
+  mesh_size_factor: {value: 1.2, source: "ENGINEERING CHOICE: TurboGrid global size factor. 1.2 keeps the splitter passage with the 0.012 in tip gap under the Student 1M-cell limit (780,920 cells, 44 spanwise + 16 gap elements); 1.5 gives 1,566,040 (PROGRESS C21)"}
+  turbulence_model: sst
+  calibration:
+    flow_tol: {value: 0.05, unit: "-", source: "ENGINEERING CHOICE: 5 % on corrected flow; typical agreement of steady RANS passage models with rig data near peak efficiency is 2 to 5 %"}
+    pr_tol: {value: 0.05, unit: "-", source: "ENGINEERING CHOICE: 5 % on impeller total pressure ratio"}
+    eta_tol: {value: 0.02, unit: "-", source: "ENGINEERING CHOICE: 2 efficiency points (impeller-alone), within the rig measurement and RANS model scatter usually reported"}
+    pr_reference: impeller
+  convergence:
+    mass_imbalance_max: {value: 0.005, unit: "-", source: "ENGINEERING CHOICE: inlet-outlet mass imbalance under 0.5 %"}
+    stability_tol: {value: 0.005, unit: "-", source: "ENGINEERING CHOICE: flow, PR and efficiency change under 0.5 % over the window"}
+    window_iterations: 300
+
+mechanical_criteria:
+  tip_clearance_min: {value: 0.008, unit: in, source: "01_rerate_request.md"}
+  campbell_excitation_orders: [20]
+  campbell_margin: {value: 10, unit: "%", source: "01_rerate_request.md"}

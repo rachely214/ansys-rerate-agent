@@ -1,0 +1,21 @@
+# Ti-6Al-4V (Grade 5), annealed: room-temperature properties from public data.
+# Used by example 01 so it runs without exporting anything from an Ansys library.
+#
+# Sources (public):
+#  [1] ASM Aerospace Specification Metals Inc., "Titanium Ti-6Al-4V (Grade 5), Annealed", ASM Material Data Sheet,
+#      https://asm.matweb.com/search/SpecificMaterial.asp?bassnum=MTP641
+#      density 4.43 g/cc; tensile yield 880 MPa; ultimate 950 MPa; modulus of elasticity 113.8 GPa;
+#      Poisson's ratio 0.342.
+#  [2] MIL-HDBK-5J / MMPDS (U.S. DoD / FAA handbook), Ti-6Al-4V annealed plate and bar, design minimum
+#      (S-basis) tensile yield Fty = 120 ksi (827 MPa) for thicknesses up to about 2 in.
+#
+# Engineering choice for example 01: use the conservative design minimum yield from [2] (827 MPa = 120 ksi),
+# not the typical value from [1]. This value must also appear in case.yaml material.yield_strength with the
+# same citation. Elastic properties and density are typical values from [1].
+name: Ti-6Al-4V
+description: "Ti-6Al-4V Grade 5 annealed; density/E/nu/ultimate typical (ASM [1]), yield = MMPDS S-basis min [2]"
+density_kg_m3: 4430
+youngs_modulus_pa: 113.8e9
+poisson_ratio: 0.342
+tensile_yield_pa: 827.371e6     # 120 ksi exactly (MMPDS Fty), converted at 6894.757 Pa/psi
+tensile_ultimate_pa: 950.0e6

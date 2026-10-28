@@ -1,0 +1,102 @@
+# Machine configuration for compressor-rerate-agent-v2.
+# setup.ps1 copies this to .local/rerate.config.yaml (git-ignored) and fills the <PLACEHOLDERS>.
+# Relative paths are relative to the repository root. No engineering values belong here; those go in case.yaml.
+
+ansys:
+  version: <ANSYS_VERSION>          # e.g. 261 for 2026 R1
+  root: <ANSYS_ROOT>                # folder with Framework/, fluent/, TurboGrid/ (setup reads AWP_ROOT<ver>)
+
+license:
+  mode: <LICENSE_MODE>              # commercial | student
+  # commercial: apps may run concurrently. Set true to still run one app at a time.
+  exclusive_apps: false
+
+fluent:
+  processors: <FLUENT_PROCESSORS>   # CPU processes for Fluent
+  gpu: false                        # true = Fluent native GPU solver (needs a license that includes it)
+  # Working-gas properties (dry air, ideal gas). Temperature-dependent cp and Sutherland viscosity: a compressor
+  # stage heats the air by ~180 K, where constant cp shifts the isentropic efficiency by ~1 point (PROGRESS C22).
+  # cp(T) in J/(kg K), polynomial a0 + a1 T + a2 T^2 + a3 T^3, fitted to ideal-gas air tables 250-600 K (max error
+  # 0.6 J/kg K). Sutherland: three-coefficient law, standard air constants. Efficiency is evaluated with the same
+  # cp(T) (gas-table method, as rig data are reduced).
+  air:
+    cp_polynomial: [1030.42, -0.232525, 0.000530303, -1.41414e-07]
+    gas_constant: 287.05
+    sutherland: {reference_viscosity: 1.716e-05, reference_temperature: 273.11, effective_temperature: 110.56}
+  # Design point of a re-rated design (DEC-19): outlet = targeted mass flow at the case flow target; the outlet
+  # static pressure floats inside [min_static_to_inlet_total, max_pressure_ratio] x inlet total pressure (numerical
+  # guard rails, wide enough not to bind for a single-stage centrifugal impeller). flow_tol: the run counts as ON
+  # target within this relative flow error (also the choke test margin). speedline_points: back pressures of the
+  # fallback speedline, as multiples of the inlet total pressure.
+  design_point:
+    min_static_to_inlet_total: 0.5
+    max_pressure_ratio: 8.0
+    flow_tol: 0.005
+    speedline_static_to_inlet_total: [1.6, 2.0, 2.4, 2.8, 3.2]
+
+# Per-app run mode and time limits.
+#   mode: gui       visible windows (demos). Needs a connected, unlocked desktop session; checked before launch.
+#   mode: headless  no windows (remote workstations, closed RDP sessions). Vista always runs batch for sizing;
+#                   Discovery has no supported headless mode for scripted geometry and refuses with a clear error.
+#   launch_timeout_s  the app must be up and answering within this time, else the stage stops and reports.
+#   job_timeout_s     a background job (build, mesh, solve) is marked 'timeout' after this time.
+apps:
+  vista:      {mode: gui, launch_timeout_s: 180, job_timeout_s: 900}
+  discovery:  {mode: gui, launch_timeout_s: 240, job_timeout_s: 900}
+  turbogrid:  {mode: gui, launch_timeout_s: 180, job_timeout_s: 600}
+  fluent:     {mode: gui, launch_timeout_s: 300, job_timeout_s: 3600}
+  mechanical: {mode: gui, launch_timeout_s: 300, job_timeout_s: 1800}
+
+# Geometry modelling tolerances (technique, not machine data). Change only if a stage reports a geometry error.
+geometry_tolerances:
+  # The hub slice/disk under the blades stops this fraction of the trailing-edge radius INSIDE the blade
+  # trailing edge. Cutting exactly at the trailing edge leaves a sliver face where the slice rim meets the blade
+  # cut-off face; Mechanical then fails with "surfaces cannot be meshed with acceptable quality".
+  hub_cut_te_inset_fraction: 0.0007
+  # Fit tolerance (metres) for spline curves built through section points in Discovery.
+  curve_fit_tolerance_m: 1.0e-6
+
+# Structural meshing method settings (technique, not machine data). Lengths are fractions of the impeller
+# trailing-edge radius so they scale with machine size.
+structural_meshing:
+  # geometry diagnostics: an edge shorter than this (x r_te) or a face smaller than (short_edge)^2 is flagged
+  short_edge_fraction: 0.002
+  # Mesh method. "patch_independent_tet" (tetrahedra, patch-independent algorithm) ignores small CAD faces/edges
+  # below the defeaturing tolerance instead of following them; the default patch-conforming mesher failed on the
+  # single-blade body ("surfaces cannot be meshed with acceptable quality", experiments S2-S5 in PROGRESS.md).
+  method: patch_independent_tet
+  element_order: quadratic
+  # minimum element size as a fraction of the requested size (prevents runaway local refinement)
+  min_size_ratio: 0.5
+  # 0 = no proximity/curvature refinement (keeps the Student 128k-node limit); 1 = mesher default
+  refinement: 0
+  growth_rate: 1.5
+  # CAD features smaller than this (x r_te) are ignored by the mesher; must stay well below the blade thickness
+  defeature_fraction: 0.0023
+  # mesh study acceptance: relative change of the body stress between the two finest meshes
+  mesh_convergence_tol: 0.05
+  # "bulk" stress excludes nodes within this distance (x r_te) of the hub-slice CUT PLANES and the fixed-support
+  # face only: these are modelling cuts (the real disk continues), where the elastic solution is singular.
+  # The blade root / fillet is real geometry and is never excluded (DEC-15).
+  body_stress_exclusion_fraction: 0.02
+  # Root/fillet zone width = this multiple x the root fillet radius, measured from the hub-side root line: covers
+  # the fillet arc (about 1.0 x radius from the tangent line) and the blade surface just above it, where the
+  # fillet stress concentration decays. Reported separately; the check uses max(bulk, root/fillet).
+  root_zone_fillet_multiple: 3.0
+
+paths:
+  runs_dir: runs                    # one folder per run (git-ignored)
+  work_dir: work                    # scratch for app logs and dev/debug output (git-ignored)
+
+mcp:
+  defaults:
+    transport: stdio                # stdio | http
+  servers:                          # per-server overrides; http needs host and port
+    case_v2: {}
+    vista_v2: {}
+    geometry_v2: {}
+    turbogrid_v2: {}
+    fluent_v2: {}
+    mechanical_v2: {}
+    # example for running the agent in a sandbox while Ansys stays on this Windows host:
+    # fluent_v2: {transport: http, host: 127.0.0.1, port: 8765}   (use a private address only; no auth)
