@@ -1,9 +1,13 @@
-# Roadmap (not built in V2)
+# Roadmap (not built yet)
 
-V2 is an experimental concept demo. These items would turn it into a decision-grade tool. Ordered by value to the
-re-rate deliverables of a typical request. Done in V2 and removed from this list: baseline-vs-measured CFD
-calibration (result: NOT CALIBRATED), splitter and measured tip gap in the passage mesh, design evaluation at the
-target flow.
+This repository is an experimental concept demo. The items below would make it easier to install and would turn
+it into a decision-grade tool. None of them is done, and no results are claimed for them. Items 1 to 13 are
+ordered by value to the re-rate deliverables of a typical request (other docs refer to them by number). Already
+done and removed from this list: baseline-vs-measured CFD calibration (result: NOT CALIBRATED), splitter and
+measured tip gap in the passage mesh, design evaluation at the target flow (implemented; no converged point at
+the target yet).
+
+## Engineering and product
 
 1. **As-manufactured geometry and recalibration.** NASA states the tested example impeller differs from the published
    design-intent coordinates (blade thickness, splitter leading edge; NASA/TM-20240003692). Load the
@@ -29,3 +33,11 @@ target flow.
 11. **More design levers.** Blade angles and backsweep, diffuser vane count and stagger, with a Campbell re-check.
 12. **STEP geometry adapter** (requirements in DECISIONS DEC-04).
 13. **Sandboxed agent.** Agent in a sandbox, MCP servers over HTTP on the Windows host.
+
+## Installation
+
+14. **Bootstrap for a bare machine.** One step that installs Hermes Agent and connects a model provider, then
+    hands over to the setup assistant. Today the user must already have Hermes with a working model
+    (https://hermes-agent.nousresearch.com/docs/getting-started/installation).
+15. **Local model support.** Run both agents with a model on the user's own computer or network instead of a
+    cloud provider. Not tested: the demo has only been run with Claude Opus through a provider.

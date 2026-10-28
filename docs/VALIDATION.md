@@ -3,11 +3,40 @@
 What was actually run, on which setup, and what it showed. Numbers here are evidence from named runs, not
 guarantees. Anything not listed as run is not validated.
 
+## Known limits (read this first)
+- **CFD is NOT CALIBRATED.** Against NASA's measured baseline the model over-predicts corrected flow by about 9 %
+  and impeller efficiency by about 7.4 points. Likely causes: design-intent geometry instead of the
+  as-manufactured impeller; the Student 1M-cell mesh cap (y+ 16 to 96, wall functions); different measurement
+  stations. No correction factor is applied, so CFD rows cannot PASS.
+- **Re-rated design point not demonstrated.** No converged CFD state was reached at the target flow.
+- **Structural model:** a single blade on a hub slice, centrifugal load only.
+- **Not simulated:** surge margin, shaft power, running tip clearance, Campbell diagram.
+- **One design lever:** the impeller exit blade height, from the 1D sizing.
+- **Windows and Ansys 2026 R1 only.**
+- **The agent run from `examples/01_nasa_hecc/prompt.md` in a fresh profile has not yet been validated end to
+  end** (in progress).
+
+Details for each are in the history sections below.
+
+## Packaging (current)
+What has been checked for this packaged layout (`setup/`, `agent/`, `runtime/`, install home under
+`%LOCALAPPDATA%\ansys-rerate-agent`) so far:
+- `python -m unittest discover -s tests`: 71 tests pass (run on 2026-10-28).
+- `python setup/verify_layout.py`: 41 of 41 required files present, 0 scan findings (run on 2026-10-28).
+- `python setup/check.py` on a test install made during the build: ALL GREEN, 33 items, all six tool servers
+  start and list their tools. (That test install has since been removed; on this machine without an install the
+  check reports NOT READY, as expected.)
+- Pending: a fresh install driven by the setup assistant (profile `ansys-rerate-setup`), and the demo agent run
+  from `examples/01_nasa_hecc/prompt.md` in a freshly installed `ansys-rerate-agent` profile.
+
+Everything below is the history of the live validation runs. They were made with the earlier development layout
+(tools called through a developer harness, now `dev/mcp_call.py`); the engineering code is the same.
+
 ## Test setup
 - One Windows 11 workstation, **Ansys 2026 R1 Student** (one app at a time, `license.mode: student`, CPU Fluent with
   4 processes, 128,000-node structural and 1M-cell CFD limits), Python 3.13, Hermes Agent desktop.
 - Apps in GUI mode over Remote Desktop.
-- Tools were exercised over real MCP stdio through `scripts/dev/mcp_call.py` (same transport Hermes uses), without an
+- Tools were exercised over real MCP stdio through `dev/mcp_call.py` (same transport Hermes uses), without an
   LLM in the loop, plus unit tests. The full agent-driven run from `examples/01_nasa_hecc/prompt.md` in a new chat is
   listed under "Not yet validated" until it is done.
 
@@ -24,9 +53,9 @@ guarantees. Anything not listed as run is not validated.
 - `python -m unittest discover -s tests`: 26 tests pass (units, case loader and approval hash, report scorecard and
   verdict labels, geometry adapters on a synthetic impeller, background job state machine including timeout,
   desktop-session parsing, config upgrade).
-- `scripts/setup/verify_layout.py`: no example-machine values, user paths, temp paths, usernames or key-like strings
+- `setup/verify_layout.py`: no example-machine values, user paths, temp paths, usernames or key-like strings
   outside `examples/`; no arbitrary-code tools in the MCP package.
-- `scripts/setup/doctor.py --mcp`: all six servers start over stdio and list their tools.
+- Health check, mcp group (then `doctor.py --mcp`, now `setup/check.py`): all six servers start over stdio and list their tools.
 - Geometry adapter vs the earlier V1 converter on the same NASA tables: changed blade sections match to within
   0.03 mm (largest at the extrapolated end section), hub to 0.000003 mm.
 
@@ -186,8 +215,9 @@ target are not demonstrated. Reported as NOT CHECKED, never estimated. A stage m
 is the likely remedy.
 
 ### Clean-clone install test
-`scripts/dev/clean_clone_test.py`: git clone into a new folder, `setup.ps1 -License student -SkipHermes`
-(new .venv from requirements.lock, local config generated), unit tests, `verify_layout.py`, `doctor.py --mcp`.
+Earlier development layout (history): a clone test (git clone into a new folder, the old PowerShell setup with
+Hermes skipped, new venv from requirements.lock, local config generated), unit tests, `verify_layout.py`, and the
+old server start check. The current maintainer script is `dev/clean_clone_test.py`.
 Result: all steps exit 0, all six servers start from the clone, no machine or run files tracked by git.
 Same machine (Ansys and Python already installed); a second machine is still not validated.
 
@@ -202,4 +232,4 @@ Same machine (Ansys and Python already installed); a second machine is still not
    use headless mode where supported.
 4. Single-blade structural meshing now works with the fillet for both cases (patch-independent tets, DEC-12).
    (The session-4 issue is resolved.)
-5. Agent-driven run in a new Hermes chat (prompt.md) not yet done; needs the rerate-v2 profile API key.
+5. Agent-driven run in a new Hermes chat (prompt.md) not yet done; pending a fresh install of the `ansys-rerate-agent` profile.
