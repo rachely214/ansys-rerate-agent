@@ -283,17 +283,25 @@ def set_back_pressure(outlet_static_pressure_pa: float, reason: str, reinitializ
 
 
 @mcp.tool
-def restore_case_back_pressure(reason: str) -> dict:
-    """Set the outlet back to the APPROVED case value after a diagnostic or start-up point (back-pressure
-    continuation: converge at a lower back pressure first, then step to the case value from that field). The next
-    solve continues from the current solution and is recorded as the real stage 'cfd'. Only the initial field
-    differs; the boundary condition is the case value."""
+def restore_case_back_pressure(reason: str, force_unconverged_start: bool = False) -> dict:
+    """Set the outlet back to the APPROVED case value after a converged start field at a lower back pressure
+    (back-pressure continuation). Refuses if the start field has not met the convergence rule (unless
+    force_unconverged_start, which must be stated to the user). The next solve continues from the current solution
+    and is recorded as the real stage 'cfd'. Only the initial field differs; the boundary condition is the case
+    value."""
     try:
         if _S["s"] is None or not _alive():
             return {"status": "error", "message": "Fluent is not connected"}
         with _LOCK:
             if _JOB["state"] == "running":
                 return {"status": "error", "message": "a solve is running; wait for finished"}
+            # A start field must be a converged solution before stepping up: stepping from a still-moving field
+            # can land on the stall side (a 250-iteration start field stalled where a converged one did not).
+            if not force_unconverged_start and not (_JOB.get("converged") and _S.get("diag_p_out") is not None):
+                return {"status": "error", "reason": "start_field_not_converged",
+                        "message": ("The start field at the lower back pressure has not met the convergence rule "
+                                    "yet. Run solve_start on the start field and wait until solve_status reports "
+                                    "converged (or stop_reason 'converged'), then call this again.")}
             _JOB.update(state="ready", hist=[], done=0, error=None, converged=False, stop_reason=None)
         p = runs.run_case().q("cfd.outlet_static_pressure", "Pa")
         mo = _S["s"].settings.setup.boundary_conditions.pressure_outlet["outlet"].momentum
