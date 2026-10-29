@@ -251,6 +251,16 @@ class Report(unittest.TestCase):
         r = [x for x in report.scorecard(self.c, st) if x["check"].startswith("Strength")][0]
         self.assertEqual(r["result"], "NOT CHECKED")
 
+    def test_strength_sharp_root_pass_is_indicative(self):
+        # sharp-root fallback (no fillet built): same judgement, label says indicative
+        st = stages_pass(self.c)
+        st["structural"]["root_fillet_m"] = 0.0
+        r = [x for x in report.scorecard(self.c, st) if x["check"].startswith("Strength")][0]
+        self.assertEqual(r["result"], "PASS (indicative, fillet not modeled)")
+        st["structural"]["root_fillet_m"] = 0.0015
+        r = [x for x in report.scorecard(self.c, st) if x["check"].startswith("Strength")][0]
+        self.assertEqual(r["result"], "PASS")
+
     def test_strength_uses_body_not_peak(self):
         st = stages_pass(self.c)
         ys = self.c.q("material.yield_strength", "Pa")

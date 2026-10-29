@@ -33,7 +33,7 @@ What has been checked for this packaged layout (`setup/`, `agent/`, `runtime/`, 
 | 1 | Intake, sizing, geometry, mesh done; calibration start field stopped too early (250 it) and the step-up stalled; then Remote Desktop dropped; agent stopped cleanly with a report |
 | 2 | Killed by a Hermes desktop restart (the run was a child process of the developer's tool); launch method fixed |
 | 3 | Remote Desktop dropped at 20:20, Fluent connection reset; agent stopped cleanly |
-| **4** | **Complete, 4 h 50 min, no human intervention.** Verdict "PASS ON CHECKED ITEMS ONLY": 4 PASS, 7 NOT CHECKED, 0 FAIL |
+| **4** | **Complete, 4 h 50 min, no human intervention.** Verdict "PASS ON CHECKED ITEMS ONLY": 4 PASS (strength indicative, fillet not modeled), 7 NOT CHECKED, 0 FAIL |
 
   Run 4 results (`runs/NASA-HECC-rerate_20261028_211714` baseline, `..._232101` design):
   - Sizing: exit height 0.609 to 0.634 in (limit 0.650): fits casing PASS; +6.0 % (1D estimate) PASS.
@@ -44,8 +44,10 @@ What has been checked for this packaged layout (`setup/`, `agent/`, `runtime/`, 
     targeted-mass-flow solve ran away (outlet 394 kPa, full reversal); one speedline point at 182 kPa did not
     converge. Flow, PR and efficiency at the target: NOT CHECKED.
   - Structural: blade with a sharp root (the filleted blade crashed the Mechanical mesher twice; geometry margins
-    3 deg / 0.05 in left a sliver face). Root-zone p99 174 MPa, bulk 155 MPa, safety factor 4.77 vs 1.5: PASS,
-    with the note that the root needs a filleted model.
+    3 deg / 0.05 in left a sliver face). Root-zone p99 174 MPa, bulk 155 MPa, safety factor 4.77 vs 1.5:
+    **PASS (indicative, fillet not modeled)**. The run's own REPORT.md says plain PASS with a note; it was made
+    before this label existed (2026-10-29). Rescoring run 4's run.json with the current report code gives
+    "PASS ON CHECKED ITEMS ONLY: 4 pass (1 indicative), 7 not checked".
   - Agent behaviour: read and checked every source (looked up the NASA papers), worked on a copy of the case,
     stated every choice, used the override openly, recovered from the mesher crash, never reported a pass it did
     not have, and wrote `RUN_NOTES.md` with how to resume.

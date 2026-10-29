@@ -17,6 +17,8 @@ Success: REPORT.md written in the run folder, with a verdict line and one scorec
 
 ## Result labels (do not rename them)
 - PASS / FAIL: measured value vs the case target.
+- PASS (indicative, fillet not modeled): strength passes, but the blade was solved with a sharp root because the
+  filleted blade could not be built or meshed. Report it with exactly this label, never as plain PASS.
 - FAIL (model-limited): a FAIL from a stage that declared simplifications (single passage, no diffuser). It is
   still a FAIL. Tell the user the model may be the cause and what model would settle it.
 - NOT CHECKED: no stage produced a usable value (not run, not converged, or model not calibrated). Never present

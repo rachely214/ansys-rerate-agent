@@ -6,6 +6,9 @@ Result labels:
                          (e.g. single passage, no diffuser, not converged). The FAIL stands; the label says
                          the simplified model may be the cause, so a human must judge.
   NOT CHECKED            no stage produced the value (never counted as PASS)
+  PASS (indicative, fillet not modeled)
+                         strength passes on a blade solved with a sharp root (no fillet built); the root
+                         stress is not a real fillet value. Counted as checked, labelled indicative.
   NOT REQUESTED          the case has no target for it
 """
 from __future__ import annotations
@@ -14,6 +17,8 @@ import time
 from pathlib import Path
 
 from .case import Case
+
+PASS_NO_FILLET = "PASS (indicative, fillet not modeled)"
 
 
 def _row(check, target, value, source, ok, fidelity=None, note=""):
@@ -158,8 +163,13 @@ def _rows_tail(case: Case, stages: dict, rows: list[dict]) -> list[dict]:
         note = "root/fillet stress not mesh-converged"
     elif gov and st.get("hand_check_ok") is False:
         note = "FE disagrees with hand calculation by more than 10x"
-    rows.append(_row(f"Strength at overspeed, SF >= {sf:g}", f"< {allow:,.0f} {su}", val, "structural",
-                     (ys / gov >= sf) if trusted else None, st.get("fidelity"), note=note))
+    srow = _row(f"Strength at overspeed, SF >= {sf:g}", f"< {allow:,.0f} {su}", val, "structural",
+                (ys / gov >= sf) if trusted else None, st.get("fidelity"), note=note)
+    # Sharp-root fallback (no fillet built): the root number is not a real fillet stress, so a pass is only
+    # indicative. Label change only; the judgement above is unchanged.
+    if srow["result"] == "PASS" and st.get("root_fillet_m") is not None and not st.get("root_fillet_m"):
+        srow["result"] = PASS_NO_FILLET
+    rows.append(srow)
 
     # 7 sizing estimate (clearly an estimate)
     fb = case.q("baseline.corrected_flow", fu)
@@ -196,8 +206,13 @@ def verdict(rows: list[dict]) -> str:
         if ml:
             s += f"; {ml} of these come from a simplified model and need engineering review"
         return s
+    ind = sum(1 for r in checked if "indicative" in r["result"])
+    ind_s = f" ({ind} indicative)" if ind else ""
     if open_:
-        return f"PASS ON CHECKED ITEMS ONLY: {len(checked)} pass, {len(open_)} not checked (not a release PASS)"
+        return (f"PASS ON CHECKED ITEMS ONLY: {len(checked)} pass{ind_s}, {len(open_)} not checked "
+                f"(not a release PASS)")
+    if ind:
+        return f"PASS ON CHECKED ITEMS ONLY: {len(checked)} pass{ind_s} (not a release PASS)"
     return f"PASS: all {len(checked)} checks pass"
 
 

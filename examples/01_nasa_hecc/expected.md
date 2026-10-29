@@ -33,7 +33,7 @@ A calibration baseline run (unchanged geometry) may also be in its own run folde
 | Inlet corrected flow | likely NOT CHECKED | see "Aero rows" below |
 | Total pressure ratio | likely NOT CHECKED | see "Aero rows" below |
 | Adiabatic efficiency (t-t) | likely NOT CHECKED | see "Aero rows" below |
-| Strength at overspeed | PASS | safety factor well above the minimum (validation run 4: 4.77 vs 1.5). If Mechanical cannot mesh the filleted root, the agent falls back to a sharp root and says the root needs a filleted model |
+| Strength at overspeed | PASS, or PASS (indicative, fillet not modeled) | safety factor well above the minimum. Plain PASS when the root fillet is modelled. If Mechanical cannot mesh the filleted root, the run falls back to a sharp root and the label is "PASS (indicative, fillet not modeled)" (validation run 4: SF 4.77 vs 1.5) |
 | Flow increase at sizing (1D estimate) | PASS | a 1D estimate only, labelled as such |
 | Surge margin | NOT CHECKED | needs a full speedline; not simulated |
 | Shaft power increase | NOT CHECKED | not computed |
@@ -54,10 +54,10 @@ The report also has a calibration table (measured baseline vs the baseline model
   but no converged solution was found AT the target flow (the targeted-flow run was unstable and the speedline
   points between choke and the target oscillated). The report then says so instead of estimating.
 - **Strength PASS**: blade body and root stress are mesh-converged. The filleted root is tried first; if the
-  Mechanical mesher fails on it (seen in validation run 4), the run uses a sharp root and the report says the
-  root number needs a filleted model.
-- **Validation run 4** (2026-10-28, 4 h 50 min, no human input) gave exactly this verdict: 4 PASS, 7 NOT CHECKED,
-  0 FAIL. See `docs/VALIDATION.md`.
+  Mechanical mesher fails on it (seen in validation run 4), the run uses a sharp root and the row reads
+  **PASS (indicative, fillet not modeled)**, never plain PASS.
+- **Validation run 4** (2026-10-28, 4 h 50 min, no human input): 4 PASS (strength indicative, fillet not
+  modeled), 7 NOT CHECKED, 0 FAIL. See `docs/VALIDATION.md`.
 - **Casing fit PASS** from the 1D sizing.
 
 If your run gives a different verdict, the report and `run.json` say why. A different result is not wrong by
