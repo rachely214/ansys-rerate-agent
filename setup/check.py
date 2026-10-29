@@ -59,6 +59,9 @@ def run(cmd, timeout=60, **kw):
                           encoding="utf-8", errors="replace", **kw)
 
 
+NO_MODEL_CALL = False  # set from --no-model-call
+
+
 # ---------------------------------------------------------------- shared helpers (install_runtime.py imports these)
 def install_home(arg=None):
     if arg:
@@ -597,7 +600,7 @@ def check_hermes(home, profile):
     if not h:
         add("hermes_cli", g, "FAIL", "the hermes command is not on PATH",
             "Install Hermes Agent (hermes-agent.nousresearch.com), then open a new terminal.")
-        for cid in ("profile_installed", "profile_mcp_wired", "profile_model_set", "profile_key_present",
+        for cid in ("profile_installed", "profile_mcp_wired", "profile_model_set", "profile_key_present", "model_reachable",
                     "skills_present", "stale_servers"):
             add(cid, g, "SKIP", "Hermes not installed")
         return
@@ -612,7 +615,7 @@ def check_hermes(home, profile):
     if not profile_exists(profile):
         add("profile_installed", g, "FAIL", "Hermes profile '%s' does not exist" % profile,
             "Run: python setup/install_runtime.py profile --name %s." % profile)
-        for cid in ("profile_mcp_wired", "profile_model_set", "profile_key_present", "skills_present"):
+        for cid in ("profile_mcp_wired", "profile_model_set", "profile_key_present", "model_reachable", "skills_present"):
             add(cid, g, "SKIP", "profile not installed")
     else:
         cfgp, cfg = _profile_cfg(profile, home)
@@ -636,6 +639,23 @@ def check_hermes(home, profile):
                 % (profile, model.get("provider") or "<provider>"))
         else:
             add("profile_key_present", g, "WARN", detail + "; send one test message to the agent to confirm")
+        if NO_MODEL_CALL:
+            add("model_reachable", g, "SKIP", "skipped (--no-model-call)")
+        else:
+            # One tiny real request through the profile: the only reliable proof that the model and key work
+            # (a key can be present but wrong or expired; Hermes then answers HTTP 401).
+            r = run([h, "-p", profile, "chat", "-q", "Reply with the single word READY"], timeout=180)
+            out = (r.stdout or "") + (r.stderr or "")
+            if re.search(r"\bREADY\b", out.split("Query:")[-1]) and "401" not in out:
+                add("model_reachable", g, "PASS", "the profile's model answered a test message")
+            elif "401" in out or "credential is invalid" in out:
+                add("model_reachable", g, "FAIL", "the model provider rejected the key (HTTP 401)",
+                    "Add a valid key for this profile: hermes -p %s auth add %s --type api-key "
+                    "(it asks for the key privately)." % (profile, model.get("provider") or "<provider>"))
+            else:
+                tail = re.sub(r"\s+", " ", out.strip())[-160:]
+                add("model_reachable", g, "FAIL", "no answer from the model: %s" % tail,
+                    "Check the model and provider: hermes -p %s model; then send one test message." % profile)
         names = set()
         for f in (pdir / "skills").rglob("SKILL.md"):
             names.add(f.parent.name)
@@ -762,7 +782,11 @@ def main():
     ap.add_argument("--only", choices=GROUPS, help="run one group only")
     ap.add_argument("--home", help="install folder (default: LOCALAPPDATA/ansys-rerate-agent or ANSYS_RERATE_HOME)")
     ap.add_argument("--profile", default="ansys-rerate-agent", help="Hermes profile of the demo agent")
+    ap.add_argument("--no-model-call", action="store_true",
+                    help="skip the one real test message to the model (offline checks only)")
     a = ap.parse_args()
+    global NO_MODEL_CALL
+    NO_MODEL_CALL = a.no_model_call
     home = install_home(a.home)
     funcs = {"system": lambda: check_system(home), "ansys": lambda: check_ansys(home),
              "python": lambda: check_python(home), "config": lambda: check_config(home),

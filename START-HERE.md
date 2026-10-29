@@ -37,6 +37,17 @@ It is a concept demo of an AI agent using engineering tools, not a validated des
    hermes -p ansys-rerate-setup model
    ```
 
+4. If it asks for an API key, paste it there. If it does not ask, add the key yourself (a new profile does not
+   inherit keys from your normal profile). Replace `<provider>` with the provider name you picked:
+
+   ```
+   hermes -p ansys-rerate-setup auth add <provider> --type api-key
+   ```
+
+5. Check it works: `hermes -p ansys-rerate-setup chat -q "Reply with OK"` should print OK. If it says "401" or
+   "credential is invalid", the key is missing or wrong: repeat step 4. The demo agent profile created later needs
+   the same key; the setup assistant will tell you the command.
+
 ## Step 2: talk to the setup assistant
 
 The setup assistant runs commands relative to this folder, so it must know where the folder is.

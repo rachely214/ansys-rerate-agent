@@ -44,8 +44,9 @@ Success: `PY setup/check.py` prints `ALL GREEN`, and the user knows the four han
    `--zip <path>`.
 6. **Demo agent profile.** `PY setup/install_runtime.py profile`. It installs the `ansys-rerate-agent` profile,
    connects its six Ansys tool servers, and copies the model choice (not the key) from the user's default
-   profile. Read its last lines aloud to the user: if it says a model key is still needed, show the user the
-   exact command it printed; they type the key themselves.
+   profile. A new profile does NOT inherit the key: show the user the exact command the step prints
+   (`hermes -p ansys-rerate-agent auth add <provider> --type api-key`); they type the key themselves. The health
+   check's `model_reachable` item then proves it works (HTTP 401 means the key is missing or wrong).
 7. **Health check.** `PY setup/check.py`. Fix FAILs with `setup-diagnose` until `ALL GREEN`. WARN items: explain
    each in one line; they do not block.
 8. **Handover** (see SOUL). Remind the user that the full demo takes 2 to 4.5 hours on a 4-core computer.

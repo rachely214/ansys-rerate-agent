@@ -158,8 +158,18 @@ from your default profile when the new profile has none.
 **Means:** best-effort check that the profile can authenticate to its model provider: a key in the profile's
 `.env`, its config, or the Hermes credential store, or a provider that needs no key (a local model). The key
 itself is never shown. A warning means the check cannot tell; send one test message to the agent to be sure.
-**Fix:** `hermes -p ansys-rerate-agent auth add <provider>` and paste the key when asked. Keys are never written by
-the setup scripts.
+**Fix:** `hermes -p ansys-rerate-agent auth add <provider> --type api-key` and paste the key when asked. Keys are
+never written by the setup scripts. A key that is present can still be wrong or expired: `model_reachable` is the
+real test.
+
+### model_reachable
+**Means:** the check sent one short test message through the profile ("Reply with the single word READY") and
+the model answered. This is the only reliable proof that the model, provider and key work. It costs one tiny
+request; skip it with `--no-model-call` when offline.
+**Fix:** HTTP 401 means the provider rejected the key: add a valid one with
+`hermes -p ansys-rerate-agent auth add <provider> --type api-key`. Real case seen: the main Hermes profile kept
+its key inside its own config.yaml; new profiles get the model choice but, correctly, not the key, so they answer
+401 until a key is added to them. Any other error: check the model choice with `hermes -p ansys-rerate-agent model`.
 
 ### skills_present
 **Means:** the 8 demo skills are installed in the profile: rerate-run, rerate-intake, rerate-sizing,

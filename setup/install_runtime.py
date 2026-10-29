@@ -252,12 +252,14 @@ def step_profile(a, home):
     say("profile: done. Model key: " + detail + ".")
     if st == "no" or (st == "unknown" and prov):
         say("WHAT YOU STILL NEED TO DO: give profile '%s' its model key. In a terminal run:\n"
-            "    hermes -p %s auth add %s\n"
+            "    hermes -p %s auth add %s --type api-key\n"
             "and paste the key when it asks (it is stored privately by Hermes, never in this repository)."
             % (a.name, a.name, prov or "<provider>"))
     elif not prov:
         say("WHAT YOU STILL NEED TO DO: choose a model: hermes -p %s model" % a.name)
-    say("Then close Hermes completely and open it again, and start a NEW chat with profile '%s'." % a.name)
+    say("Then run the health check (python setup/check.py): its model_reachable item sends one test message and\n"
+        "proves the key works. Finally close Hermes completely, open it again, and start a NEW chat with profile '%s'."
+        % a.name)
 
 
 def main():
