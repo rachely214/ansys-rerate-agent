@@ -34,7 +34,9 @@ the structural stage exists.
    then call `job_status`; repeat with a one-line status each time. State the values you chose:
    - `stride`: use every Nth resampled section point for the loft (lower = finer, slower). Example: stride 4
      worked for the NASA example, because it gives a smooth closed loft in a few minutes.
-   - a few degrees of theta margin, and a small leading-edge pad in the case length unit.
+   - a few degrees of theta margin, and a small leading-edge pad in the case length unit. Example: theta margin
+     4 deg and LE pad 0.15 in gave a single blade with a root fillet that Mechanical meshes on the NASA example;
+     3 deg and 0.05 in left a sliver face next to the fillet that crashed the structural mesher.
    - Pass only if the impeller solid is closed and the single-blade STEP exists. Read the logs for `FAIL` lines
      (merge or fillet); a failed fillet is acceptable only if you say so in the report.
 4. If the tool says Discovery must be closed before the next app, call `close_discovery {}` before meshing.

@@ -41,8 +41,14 @@ Fidelity is recorded automatically: one blade on a hub slice (no disk), centrifu
 no thermal). Running clearance and Campbell checks are not simulated and stay NOT CHECKED.
 
 ## If the blade will not mesh
-`job_status` returns `no mesh size gave a valid mesh` with the sizes tried. The usual cause is the root fillet
-("surfaces cannot be meshed with acceptable quality"). Then: tell the user, rebuild the geometry with
-`geometry_v2.build_start {..., root_fillet: false}`, rerun spin stress, and report with the fidelity note
-"no root fillet". Do not quote the peak at the sharp root as a real stress; report the blade body stress away
-from the root and say the root needs a filleted model.
+`job_status` returns `no mesh size gave a valid mesh` (or the mesher crashes) with the sizes tried. The usual
+cause is a small sliver face next to the root fillet. In order:
+1. Run `geometry_diagnostics_start {}` and read the flags (short edges, small or near-tangent faces).
+2. Rebuild the geometry ONCE with the fillet kept and slightly larger margins: `geometry_v2.build_start {stride,
+   theta_margin_deg: 4, le_pad: <about 0.15 in or 4 mm>, root_fillet: true}`, then rerun spin stress. These
+   values meshed with the fillet on the NASA example.
+3. Only if that also fails: rebuild with `root_fillet: false`, rerun, and report with the fidelity note
+   "no root fillet". Do not quote the peak at the sharp root as a real stress; report the blade body stress away
+   from the root and say the root needs a filleted model.
+Mesh sizes (case length unit): the NASA example meshed and converged with 0.2 and 0.16 in (about 1/3 and 1/4 of
+the exit blade height); 0.10 in and finer exceeded the Student node limit.

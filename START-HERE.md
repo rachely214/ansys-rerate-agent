@@ -93,13 +93,35 @@ script with no AI in it. ALL GREEN means every item passed and the computer is r
 5. The agent shows you every value of the study with its source and waits. Read it and reply that you approve
    (or say what to change).
 6. Keep the computer unlocked, and keep any Remote Desktop window open, until the report is done.
+   - On a weak connection, or before you walk away: in a Command Prompt run as administrator on the Ansys
+     computer, type `tscon %sessionname% /dest:console`. Your Remote Desktop window closes but the desktop
+     stays active, so the Ansys apps keep running. Reconnect later as usual. (A closed or dropped Remote Desktop
+     window otherwise stops the run: the agent then stops on purpose and says so.)
 
-How long it takes: about 2 to 4.5 hours on a 4-core computer with the Student license. Most of that is CFD.
+How long it takes: about 2 to 5 hours on a 4-core computer with the Student license. Most of that is CFD.
 
-What you get: a run folder under `%LOCALAPPDATA%\ansys-rerate-agent\runs\` with pictures, the Ansys files and
-`REPORT.md`, a pass/fail report. Each check in it is PASS, FAIL or NOT CHECKED, with a reason.
-`examples/01_nasa_hecc/expected.md` shows what a finished run looks like. Expect "PASS ON CHECKED ITEMS ONLY":
-the CFD model is not calibrated, so the airflow results cannot pass. README.md explains why.
+What you get: a run folder under `%LOCALAPPDATA%\ansys-rerate-agent\runs\` with pictures, the Ansys files,
+`REPORT.md` (a pass/fail report) and `RUN_NOTES.md` (the agent's notes and choices). Each check is PASS, FAIL or
+NOT CHECKED, with a reason. `examples/01_nasa_hecc/expected.md` shows what a finished run looks like. Expect
+"PASS ON CHECKED ITEMS ONLY": the CFD model is not calibrated, so the airflow results cannot pass. README.md
+explains why.
+
+## Optional: run it from a terminal and watch the log
+The desktop app is the easiest way to watch. For an unattended run that survives a Hermes restart, start it from
+a Command Prompt in this folder and write a log:
+
+```
+hermes -p ansys-rerate-agent chat -q "<the prompt text>" > "%LOCALAPPDATA%\ansys-rerate-agent\run.log" 2>&1
+```
+
+Watch it from PowerShell (the `-Encoding UTF8` keeps the symbols readable):
+
+```powershell
+Get-Content "$env:LOCALAPPDATA\ansys-rerate-agent\run.log" -Wait -Tail 40 -Encoding UTF8
+```
+
+Runs started this way do not appear in the desktop app's session list (they are saved as one-shot sessions);
+`hermes -p ansys-rerate-agent sessions list` shows them.
 
 ## If something goes wrong
 
