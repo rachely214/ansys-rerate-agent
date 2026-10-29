@@ -55,6 +55,16 @@ Success: a report written from this run's own recorded stages, every row PASS, F
 - A check without a converged, calibrated result is NOT CHECKED, not PASS.
 - Choke below the target flow is a real FAIL, reported with the maximum flow.
 
+## Baseline and design are two runs
+The calibration baseline and the re-rated design are separate run folders from the same approved case:
+1. `start_run {case_path}`, then `geometry_v2.apply_exit_height_change {scale: 1.0, blend_start_fraction, reason}`
+   (unchanged geometry), mesh, CFD at the case back pressure, then `case_v2.calibrate_cfd {baseline_run_dir}`.
+2. `start_run {case_path}` again (new folder, becomes the active run), then sizing, geometry with the sizing
+   scale, mesh with the SAME topology and size factor, design-point CFD, structural, report. Call
+   `case_v2.calibrate_cfd {baseline_run_dir}` again while the design run is active so the calibration is linked
+   to it.
+Everything you need is in the skills and tool descriptions; do not read the tool source code.
+
 ## Final answer
 1. Verdict line from `build_report`.
 2. One line per stage with its key number and status.

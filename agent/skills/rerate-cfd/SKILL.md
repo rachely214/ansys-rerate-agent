@@ -55,7 +55,7 @@ calibrated" and aero rows cannot PASS. Never change tolerances or measured value
 
 ## Re-rated designs: evaluate at the target flow
 The measured exit pressure belongs to the baseline machine, so a design run is evaluated at its target flow:
-1. Start field: `set_back_pressure {low value, e.g. 1.6 x inlet total, reinitialize: true}` and solve until
+1. Start field: `set_back_pressure {1.6 x inlet total pressure (choke side), reinitialize: true}` and solve until
    `solve_status` reports `converged`. If this choke flow is BELOW the target, that is a real FAIL: report the
    choke flow as the maximum flow.
 2. Otherwise `set_design_flow_target {reason}` and `solve_start` (targeted mass flow; outlet pressure floats).
@@ -67,12 +67,15 @@ The measured exit pressure belongs to the baseline machine, so a design run is e
 
 ## Start path at a high back pressure
 A cold start directly at a high outlet pressure can stall the passage. Use back-pressure continuation:
-`set_back_pressure {lower value, reinitialize: true}`, then `solve_start` and let it run until `solve_status`
-reports `converged` (stop reason `converged`; typically 500 to 800 iterations). Do NOT stop it early because the
-flow looks flat: a start field that is still moving can tip the step-up onto the stall side.
-`restore_case_back_pressure` refuses until the start field is converged. Then call it and `solve_start`. The
-result is recorded as stage `cfd` with its start path. If the solve at the case value still collapses (inlet
-reversal rising, flow falling), stop and report "did not converge (stall at the case back pressure)"; never
-lower the case value to get a number.
+1. Start field at the CHOKE side: `set_back_pressure {1.6 x inlet total pressure, reinitialize: true}`, then
+   `solve_start` and wait until `solve_status` reports `converged`. Do not pick a higher starting value: between
+   choke and the operating point the passage can oscillate for hours without converging (seen at 2.4 x inlet
+   total). At 1.6 x it is choked and typically converges in 500 to 800 iterations.
+2. Do NOT stop it early because the flow looks flat. `restore_case_back_pressure` refuses until the start field
+   is converged. Use `force_unconverged_start` only if the start field will not converge at 1.6 x, and say so.
+3. Then `restore_case_back_pressure {reason}` and `solve_start`. The result is recorded as stage `cfd` with its
+   start path.
+4. If the solve at the case value collapses (inlet reversal rising, flow falling), stop and report "did not
+   converge (stall at the case back pressure)"; never lower the case value to get a number.
 
 Print: `STAGE 5 | PR <x> | eta <y> | corrected flow <q> <unit> | converged yes/no (<n> it) | calibrated yes/no | ok/partial`.
