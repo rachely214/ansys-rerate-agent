@@ -20,14 +20,40 @@ Details for each are in the history sections below.
 
 ## Packaging (current)
 What has been checked for this packaged layout (`setup/`, `agent/`, `runtime/`, install home under
-`%LOCALAPPDATA%\ansys-rerate-agent`) so far:
-- `python -m unittest discover -s tests`: 71 tests pass (run on 2026-10-28).
-- `python setup/verify_layout.py`: 41 of 41 required files present, 0 scan findings (run on 2026-10-28).
-- `python setup/check.py` on a test install made during the build: ALL GREEN, 33 items, all six tool servers
-  start and list their tools. (That test install has since been removed; on this machine without an install the
-  check reports NOT READY, as expected.)
-- Pending: a fresh install driven by the setup assistant (profile `ansys-rerate-setup`), and the demo agent run
-  from `examples/01_nasa_hecc/prompt.md` in a freshly installed `ansys-rerate-agent` profile.
+`%LOCALAPPDATA%\ansys-rerate-agent`):
+- `python -m unittest discover -s tests`: 71 tests pass (2026-10-29).
+- `python setup/verify_layout.py`: 41 of 41 required files present, 0 scan findings (2026-10-29).
+- `python setup/check.py` on this machine's real install (installer steps run directly, not by the setup
+  assistant): ALL GREEN, 33 items, including `model_reachable` (one real test message) and all six tool servers.
+- **Demo agent, end to end, from the prompt** (fresh `ansys-rerate-agent` profile, no memory, Claude Opus via the
+  user's provider, approval pre-given in the prompt for an unattended test). Four attempts on 2026-10-28:
+
+| Attempt | Outcome |
+|---|---|
+| 1 | Intake, sizing, geometry, mesh done; calibration start field stopped too early (250 it) and the step-up stalled; then Remote Desktop dropped; agent stopped cleanly with a report |
+| 2 | Killed by a Hermes desktop restart (the run was a child process of the developer's tool); launch method fixed |
+| 3 | Remote Desktop dropped at 20:20, Fluent connection reset; agent stopped cleanly |
+| **4** | **Complete, 4 h 50 min, no human intervention.** Verdict "PASS ON CHECKED ITEMS ONLY": 4 PASS, 7 NOT CHECKED, 0 FAIL |
+
+  Run 4 results (`runs/NASA-HECC-rerate_20261028_211714` baseline, `..._232101` design):
+  - Sizing: exit height 0.609 to 0.634 in (limit 0.650): fits casing PASS; +6.0 % (1D estimate) PASS.
+  - Calibration: NOT CALIBRATED. The start field at 180 kPa (agent's choice) never converged; the agent used the
+    override to step up, and the passage stalled at the measured 228.3 kPa (flow 0.27 to 0.046 kg/s per passage,
+    24 % inlet reversal). The agent stopped and did not lower the case value.
+  - Design CFD: choke start field at 121 kPa converged: maximum flow 12.59 lbm/s (above the 11.5 target). The
+    targeted-mass-flow solve ran away (outlet 394 kPa, full reversal); one speedline point at 182 kPa did not
+    converge. Flow, PR and efficiency at the target: NOT CHECKED.
+  - Structural: blade with a sharp root (the filleted blade crashed the Mechanical mesher twice; geometry margins
+    3 deg / 0.05 in left a sliver face). Root-zone p99 174 MPa, bulk 155 MPa, safety factor 4.77 vs 1.5: PASS,
+    with the note that the root needs a filleted model.
+  - Agent behaviour: read and checked every source (looked up the NASA papers), worked on a copy of the case,
+    stated every choice, used the override openly, recovered from the mesher crash, never reported a pass it did
+    not have, and wrote `RUN_NOTES.md` with how to resume.
+  - Fixes made from what the runs showed: start-field convergence enforced by the tool; start field at the choke
+    side (1.6 x inlet total) in the skill; fillet recovery keeps the fillet first; key check with a real test
+    message; case copy instead of editing the example.
+- Not yet validated: a fresh install driven only by the setup assistant; a clean machine with only Ansys; a run
+  with the latest skill fixes.
 
 Everything below is the history of the live validation runs. They were made with the earlier development layout
 (tools called through a developer harness, now `dev/mcp_call.py`); the engineering code is the same.
