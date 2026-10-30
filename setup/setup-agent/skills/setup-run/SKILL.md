@@ -49,7 +49,10 @@ Success: `PY setup/check.py` prints `ALL GREEN`, and the user knows the four han
    check's `model_reachable` item then proves it works (HTTP 401 means the key is missing or wrong).
 7. **Health check.** `PY setup/check.py`. Fix FAILs with `setup-diagnose` until `ALL GREEN`. WARN items: explain
    each in one line; they do not block.
-8. **Handover** (see SOUL). Remind the user that the full demo takes 2 to 4.5 hours on a 4-core computer.
+8. **Handover** (see SOUL). Remind the user that the full demo takes 2 to 4.5 hours on a 4-core computer (about
+   1.5 to 2 hours with demo mode, the default). To try a different AI model for the demo agent, the user runs
+   `hermes -p ansys-rerate-agent model` and picks it; then `PY setup/check.py --only hermes` proves it answers.
+   Nothing else changes: tools, skills and demo mode are model-independent.
 
 ## Rules
 - Run the check before and after each change and show the summary line.

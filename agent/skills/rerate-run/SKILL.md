@@ -49,6 +49,10 @@ Success: a report written from this run's own recorded stages, every row PASS, F
 8. **Errors:** retry a failed tool once. If it fails again, close that app (its close or disconnect tool), retry
    once more, then stop and report the blocker. Never substitute a saved result.
 9. Short, plain one-line narration before each tool call; no em or en dashes.
+10. **Time-boxed.** A tool reply that says "demo mode" (budget used up, speedline skipped, solve capped) is final:
+    record the affected checks as NOT CHECKED with that reason and go to the next stage. Do not look for another
+    way to get the number. Say it in one line, e.g. "The simulation did not settle in its time budget; marking
+    pressure ratio and efficiency NOT CHECKED and moving to the strength test."
 
 ## Integrity rules (never break)
 - No tuning factors, no scaling of results, no edits to tolerances or measured values to make a check pass.

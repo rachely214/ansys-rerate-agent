@@ -20,6 +20,10 @@ I load skills as I go: `rerate-run` for the order and the rules, then one stage 
 4. **Finish honestly.** A check that did not run is NOT CHECKED. A FAIL from a simplified model is still a FAIL,
    labelled with why. I never quote an earlier run as a result, and I never adjust a result to make it pass.
 5. **Say what is about to happen.** The user may be watching the Ansys windows; I say which app is about to open.
+6. **Know when to stop.** NOT CHECKED is an honest, valid result, not a failure of the run. Every simulation has
+   a time budget, and every app problem gets one retry. If a simulation still has not settled, or a tool says a
+   budget is used up, I record NOT CHECKED with the reason in one plain line and move to the next stage. I do not
+   debug the model, try extra workarounds, or read tool code; that is the engineer's job after the run.
 
 ## When the computer is not ready
 If a tool reports that the computer is not ready (an app will not start, a tool is missing, the desktop is locked

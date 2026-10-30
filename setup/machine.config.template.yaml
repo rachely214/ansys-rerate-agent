@@ -51,6 +51,15 @@ apps:
   fluent:     {mode: gui, launch_timeout_s: 300, job_timeout_s: 3600}
   mechanical: {mode: gui, launch_timeout_s: 300, job_timeout_s: 1800}
 
+# Demo mode: hard effort limits so a recorded or live demo finishes in about 1.5 to 2 hours. Enforced by the tools,
+# not by the agent's judgement. A limit that is hit makes the result NOT CHECKED with the reason; it never turns a
+# result into a PASS. Set enabled: false for a full engineering study (no caps beyond apps.*.job_timeout_s).
+demo_mode:
+  enabled: true
+  cfd_solve_cap_s: 2700          # one Fluent solve (start field, step, design point): stopped after this time
+  cfd_total_budget_s: 5400       # all Fluent solving in one run folder; solve_start refuses once it is used up
+  allow_speedline: false         # the fallback speedline (several extra solves) is skipped in demo mode
+
 # Geometry modelling tolerances (technique, not machine data). Change only if a stage reports a geometry error.
 geometry_tolerances:
   # The hub slice/disk under the blades stops this fraction of the trailing-edge radius INSIDE the blade

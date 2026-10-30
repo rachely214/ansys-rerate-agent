@@ -237,6 +237,11 @@ def solve_start(chunk: int, time_limit_s: int) -> dict:
         c = runs.run_case()
         if _S["s"] is None or not _alive():
             return {"status": "error", "message": "Fluent is not connected"}
+        from .. import demo_mode
+        lim, refuse = demo_mode.plan_solve(time_limit_s, runs.read()["stages"], demo_mode.settings())
+        if refuse:
+            return {"status": "error", "reason": "demo_cfd_budget_used", "message": refuse}
+        time_limit_s = int(lim)
         with _LOCK:
             if _JOB["state"] == "running":
                 return {"status": "error", "message": "a solve is already running; poll solve_status"}
@@ -248,7 +253,9 @@ def solve_start(chunk: int, time_limit_s: int) -> dict:
         _JOB["thread"] = th
         th.start()
         return {"status": "ok", "state": "running", "max_iterations": n_max, "chunk": chunk,
-                "time_limit_s": time_limit_s, "next": "poll solve_status"}
+                "time_limit_s": time_limit_s, "next": "poll solve_status",
+                "note": ("demo mode: time limit capped by the demo CFD budget; if it ends unconverged, record NOT "
+                         "CHECKED and move on") if demo_mode.settings()["enabled"] else None}
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
@@ -370,6 +377,12 @@ def speedline_result(reason: str, since: str | None = None) -> dict:
     set-up)."""
     try:
         from .. import design_point as dpm
+        from .. import demo_mode
+        if demo_mode.settings()["enabled"] and not demo_mode.settings()["allow_speedline"]:
+            return {"status": "error", "reason": "demo_no_speedline",
+                    "message": ("demo mode: the fallback speedline is skipped. Record flow, PR and efficiency at the "
+                                "target as NOT CHECKED (reason: no stable design-point solution within the demo "
+                                "budget) and continue with the structural stage.")}
         c = runs.run_case()
         fu = c.raw("targets.corrected_flow_min")["unit"]
         target = c.q("targets.corrected_flow_min", fu)

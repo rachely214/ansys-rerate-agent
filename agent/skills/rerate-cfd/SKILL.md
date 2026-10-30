@@ -63,6 +63,7 @@ The measured exit pressure belongs to the baseline machine, so a design run is e
 3. If it is unstable (outlet pressure runs away, flow collapses, solver error), relaunch and run a speedline:
    3 to 5 back pressures from the tool's configured list, ascending, each to convergence; then
    `speedline_result {reason}` interpolates PR and efficiency at the target flow (no extrapolation).
+   In demo mode the tool refuses the speedline: go straight to step 4.
 4. If no converged point brackets the target, the aero rows are NOT CHECKED. Say so; never estimate.
 
 ## Start path at a high back pressure

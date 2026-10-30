@@ -90,6 +90,10 @@ script with no AI in it. ALL GREEN means every item passed and the computer is r
 2. Choose the profile **ansys-rerate-agent**.
 3. Start a **new chat**.
 4. Open `examples/01_nasa_hecc/prompt.md` and paste the text between the two lines into the chat.
+   **For a recording or a live audience, use `prompt_demo.md` instead:** attach the three customer files, paste
+   its text, and the agent runs straight through without waiting for approval. Demo mode (on by default in
+   `machine.config.yaml`, section `demo_mode`) time-boxes the simulations, so a demo run takes about 1.5 to 2
+   hours instead of up to 5. Set `demo_mode: enabled: false` for a full engineering study.
 5. The agent shows you every value of the study with its source and waits. Read it and reply that you approve
    (or say what to change).
 6. Keep the computer unlocked, and keep any Remote Desktop window open, until the report is done.

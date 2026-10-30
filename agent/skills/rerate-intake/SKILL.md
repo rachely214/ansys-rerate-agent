@@ -44,6 +44,9 @@ run folder.
    ENGINEERING CHOICE rows called out. Ask for approval in one clear question.
 7. Only after an explicit "approve" (or corrections, then re-validate and re-show), call
    `case_approve {case_path, approved_by}` with the name they give, then `start_run {case_path}`.
+   If the user's first message already approves on the engineer's behalf (a demo or unattended run), show the
+   table anyway, then approve with `approved_by` naming that (e.g. "demo run, approved in the prompt") and go on.
+   Pre-approval never covers a blocking issue from `case_validate`: those still stop the run.
 
 ## Pitfalls
 - Do not reuse numbers from an example case for a different machine. Each case stands alone.
