@@ -26,9 +26,9 @@ the structural stage exists.
 2. `apply_exit_height_change {blend_start_fraction, reason}`. Scale defaults to the sizing ratio.
    - `blend_start_fraction` = where (as a fraction of the trailing-edge radius) the shroud starts to move. The
      inducer and inlet radii must stay fixed (they are casing walls), so start the blend well outside the inducer
-     tip radius. Choose it from the meridional shape and say why.
-     Example: for the NASA example impeller 0.706 was used, because it is about 1.4 times the inducer tip radius
-     and keeps the whole inlet unchanged.
+     tip radius. Choose it from the meridional shape and say why. A start at about 1.4 times the inducer tip
+     radius (as a fraction of the trailing-edge radius) usually keeps the whole inlet unchanged; compute it for
+     this impeller, do not reuse a number from another case.
    - Check the returned exit height equals the sizing target.
 3. `build_start {stride, theta_margin_deg, le_pad}` (visible Discovery, background job). Wait a few minutes,
    then call `job_status`; repeat with a one-line status each time. State the values you chose:

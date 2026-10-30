@@ -33,7 +33,8 @@ SCAN_EXT = {".py", ".md", ".yaml", ".yml", ".ps1", ".toml", ".txt", ".json"}
 EXEMPT = {"docs/VALIDATION.md", "setup/verify_layout.py",
           "setup/requirements.lock", "THIRD_PARTY_NOTICES.md"}
 PATTERNS = {
-    "HECC number": r"(?<![\d.])(10\.85|11\.5|4\.68|4\.60|0\.609|0\.650|21789|21,789|22878|75842)(?![\d])",
+    "HECC number": r"(?<![\d.])(10\.85|11\.5|4\.68|4\.60|0\.609|0\.650|21789|21,789|22878|75842|228\.3|228300|"
+                   r"121347|121\.35|0\.706|0\.6115|8\.4997|8\.804|12\.59)(?![\d])",
     "HECC test condition": r"120\s?kPa|120000|11\s?psia",
     "HECC name": r"\bHECC\b",
     "user path": r"[A-Za-z]:[\\/]+(Users|Program Files|ProgramData)[\\/]",
