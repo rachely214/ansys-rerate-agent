@@ -43,7 +43,7 @@ Success: `PY scripts/setup/check.py` prints `ALL GREEN`, and the user knows the 
    `PY scripts/setup/install_runtime.py example-data`. If the user already has the NASA supplement zip:
    `--zip <path>`.
 6. **Demo agent profile.** `PY scripts/setup/install_runtime.py profile`. It installs the `ansys-rerate-agent` profile,
-   connects its six Ansys tool servers, and copies the model choice (not the key) from the user's default
+   connects its six limited-action MCP servers, and copies the model choice (not the key) from the user's default
    profile. A new profile does NOT inherit the key: show the user the exact command the step prints
    (`hermes -p ansys-rerate-agent auth add <provider> --type api-key`); they type the key themselves. The health
    check's `model_reachable` item then proves it works (HTTP 401 means the key is missing or wrong).

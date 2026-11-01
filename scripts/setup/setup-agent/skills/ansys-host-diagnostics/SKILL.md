@@ -11,7 +11,7 @@ metadata:
 
 # Ansys host diagnostics
 
-For the computer the demo runs on. The demo agent's six tool servers are `case_v2`, `vista_v2`, `geometry_v2`,
+For the computer the demo runs on. The demo agent's six limited-action MCP servers (tool servers) are `case_v2`, `vista_v2`, `geometry_v2`,
 `turbogrid_v2`, `fluent_v2`, `mechanical_v2` (package `rerate_mcp_v2`, installed in the install home's `venv`).
 Their settings are in `machine.config.yaml` in the install home (`%LOCALAPPDATA%\ansys-rerate-agent`).
 

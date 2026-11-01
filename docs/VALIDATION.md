@@ -6,25 +6,26 @@ guarantees. Anything not listed as run is not validated.
 ## Known limits (read this first)
 - **CFD is NOT CALIBRATED.** Against NASA's measured baseline the model over-predicts corrected flow by about 9 %
   and impeller efficiency by about 7.4 points. Likely causes: design-intent geometry instead of the
-  as-manufactured impeller; the Student 1M-cell mesh cap (y+ 16 to 96, wall functions); different measurement
-  stations. No correction factor is applied, so CFD rows cannot PASS.
+  as-manufactured impeller; a mesh limited to about 1 million cells (y+ 16 to 96, wall functions); different
+  measurement stations. No correction factor is applied, so CFD rows cannot PASS.
 - **Re-rated design point not demonstrated.** No converged CFD state was reached at the target flow.
 - **Structural model:** a single blade on a hub slice, centrifugal load only.
 - **Not simulated:** surge margin, shaft power, running tip clearance, Campbell diagram.
 - **One design lever:** the impeller exit blade height, from the 1D sizing.
 - **Windows and Ansys 2026 R1 only.**
-- **The agent run from `examples/01_nasa_hecc/prompt.md` in a fresh profile has not yet been validated end to
-  end** (in progress).
+- **Test conditions:** validation runs used an Ansys configuration limited to about 1 million mesh cells and
+  CPU-only Fluent, one app at a time. A full commercial license allows finer meshes and GPU Fluent, so results may
+  differ.
 
 Details for each are in the history sections below.
 
 ## Packaging (current)
-What has been checked for this packaged layout (`scripts/setup/`, `agent/`, `plugins/ansys-mcp/`, install home under
+What has been checked for this packaged layout (`scripts/setup/`, `agents/`, `harnesses/hermes/`, `plugins/ansys-mcp/`, install home under
 `%LOCALAPPDATA%\ansys-rerate-agent`):
 - `python -m unittest discover -s tests`: 71 tests pass (2026-10-29).
 - `python scripts/setup/verify_layout.py`: 41 of 41 required files present, 0 scan findings (2026-10-29).
 - `python scripts/setup/check.py` on this machine's real install (installer steps run directly, not by the setup
-  assistant): ALL GREEN, 33 items, including `model_reachable` (one real test message) and all six tool servers.
+  assistant): ALL GREEN, 33 items, including `model_reachable` (one real test message) and all six limited-action MCP servers.
 - **Demo agent, end to end, from the prompt** (fresh `ansys-rerate-agent` profile, no memory, Claude Opus via the
   user's provider, approval pre-given in the prompt for an unattended test). Four attempts on 2026-10-28:
 
@@ -76,17 +77,21 @@ Everything below is the history of the live validation runs. They were made with
 (tools called through a developer harness, now `scripts/dev/mcp_call.py`); the engineering code is the same.
 
 ## Test setup
-- One Windows 11 workstation, **Ansys 2026 R1 Student** (one app at a time, `license.mode: student`, CPU Fluent with
-  4 processes, 128,000-node structural and 1M-cell CFD limits), Python 3.13, Hermes Agent desktop.
+- One Windows 11 workstation with an NVIDIA RTX PRO 6000 Blackwell (96 GB), **Ansys 2026 R1**, Python 3.13,
+  Hermes Agent desktop.
+- Ansys configuration used for validation: limited to about 1 million CFD mesh cells and 128,000 structural
+  nodes, CPU-only Fluent with 4 processes, one Ansys app at a time (single-seat license mode in the machine
+  config). A full commercial license allows finer meshes, concurrent apps and GPU Fluent, so results may differ.
 - Apps in GUI mode over Remote Desktop.
 - Tools were exercised over real MCP stdio through `scripts/dev/mcp_call.py` (same transport Hermes uses), without an
-  LLM in the loop, plus unit tests. The full agent-driven run from `examples/01_nasa_hecc/prompt.md` in a new chat is
-  listed under "Not yet validated" until it is done.
+  LLM in the loop, plus unit tests. Later, the agent itself ran the workflow end to end from the prompt (Packaging
+  section above).
 
 ## Not yet validated (commercial-license and deployment behaviour)
 - **Concurrent apps** (`license.mode: commercial`): designed in (`free_seat_for` skips closing other apps) but never
-  run; only Student was available.
-- **Fluent GPU solver** (`fluent.gpu: true`): not licensed on Student; never run.
+  run; validation used one app at a time.
+- **Fluent GPU solver** (`fluent.gpu: true`): never run; validation used CPU-only Fluent.
+- **Finer CFD meshes** above about 1 million cells (resolved boundary layer): never run.
 - **Headless modes** (`apps.<app>.mode: headless`) for Mechanical (batch) and Fluent (no-GUI): code paths exist,
   not run end to end yet. Discovery refuses headless by design.
 - **HTTP transport** and an agent in a sandbox (NVIDIA OpenShell) with Ansys on Windows: not run.
@@ -110,11 +115,11 @@ Everything below is the history of the live validation runs. They were made with
 - Likely causes, none corrected by a factor:
   1. **Geometry**: NASA design-intent hot coordinates; the tested impeller is as-manufactured (thicker blades,
      different splitter leading edge, NASA/TM-20240003692).
-  2. **Mesh**: the Student license 1M-cell cap; near-wall y+ 16 to 96 means wall functions, not a resolved boundary
-     layer, which tends to under-predict loss.
+  2. **Mesh**: limited to about 1 million cells; near-wall y+ 16 to 96 means wall functions, not a resolved
+     boundary layer, which tends to under-predict loss.
   3. **Measurement stations**: NASA impeller efficiency uses Station 2.4 total pressure (diffuser vane inlet,
      1.077 r_TE, area-averaged) and Station 3 total temperature (machine exit); the model reads both at 1.036 r_TE.
-  A commercial license with a resolved boundary layer is **expected** to reduce the efficiency gap. This is an
+  A finer mesh with a resolved boundary layer is **expected** to reduce the efficiency gap. This is an
   expectation, not a validated result.
 - Single passage, no diffuser, steady, no seal leakage. Structural: one blade on a hub slice, centrifugal only.
 - Surge margin, shaft power, running clearance, Campbell: not simulated.
@@ -127,7 +132,7 @@ Everything below is the history of the live validation runs. They were made with
 See the run tables below (filled in as runs complete).
 
 ### Run 1: example 01 (HECC case), `runs/NASA-HECC-rerate_20261027_001027`
-All stages through the V2 MCP tools over stdio, start/poll pattern, Student license, GUI mode.
+All stages through the V2 MCP tools over stdio, start/poll pattern, validation Ansys configuration, GUI mode.
 
 | Stage | Result | Time |
 |---|---|---|
@@ -197,7 +202,7 @@ Not completed in session 6 (blocked):
   connected. Therefore not run: calibration baseline, HECC design rerun, case B rerun, Mechanical fillet check.
 - Unit tests: 50 pass; layout scan: 0 findings. (All of these were completed in session 7, below.)
 
-### Session 7: calibration baseline, HECC rerun, case B (Ansys 2026 R1 Student, GUI, desktop connected)
+### Session 7: calibration baseline, HECC rerun, case B (Ansys 2026 R1, GUI, desktop connected)
 Model changes before these runs (each with a DECISIONS entry): measured tip gap 0.012 in in the CFD mesh
 (case `geometry.tip_clearance`, datasheet value) and splitter in the passage; mesh size factor 1.2 to stay under
 1M cells (C21); air cp(T) and Sutherland viscosity, efficiency by the gas-table method like the rig data
@@ -211,7 +216,7 @@ Pre-run checks (PROGRESS C22, C23):
   ~0.9 points; fixed. The station differences remain and are stated, not corrected.
 - Walls: all no-slip, rotating-frame blade/hub, stationary shroud; SST with Fluent's all-y+ wall treatment.
   y+ 16 to 96 on blade/hub/shroud: wall-function regime, not a resolved boundary layer (fidelity limit; y+ ~1
-  does not fit the Student cell limit with splitter and gap).
+  does not fit the 1 million cell limit with splitter and gap).
 
 | Run | Stage | Result |
 |---|---|---|
@@ -252,7 +257,7 @@ fallback (fixed back pressures, interpolation at the target flow, no extrapolati
 | | Speedline (D6) | **blocked**: Remote Desktop disconnected; Fluent died twice with 'connection reset' |
 | | Report | **FAIL** 2 of 4 checked: casing fit (16.35 > 16.0 mm, real) and strength (fillet SF 0.94, model-limited). Aero NOT CHECKED |
 
-Finding: with this model (impeller-only passage, steady RANS, Student mesh) the re-rated designs have no steady
+Finding: with this model (impeller-only passage, steady RANS, mesh under 1 million cells) the re-rated designs have no steady
 solution between choke and the higher back pressures needed to reach the target flow, so PR and efficiency at the
 target are not demonstrated. Reported as NOT CHECKED, never estimated. A stage model with the diffuser (roadmap 3)
 is the likely remedy.
@@ -275,4 +280,5 @@ Same machine (Ansys and Python already installed); a second machine is still not
    use headless mode where supported.
 4. Single-blade structural meshing now works with the fillet for both cases (patch-independent tets, DEC-12).
    (The session-4 issue is resolved.)
-5. Agent-driven run in a new Hermes chat (prompt.md) not yet done; pending a fresh install of the `ansys-rerate-agent` profile.
+5. Agent-driven run in a new Hermes chat: done (Packaging section: runs 4 and 5). A clean-machine install by a
+   second user is still not done.

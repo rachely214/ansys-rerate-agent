@@ -24,7 +24,7 @@ It runs the installer steps in `scripts/setup/install_runtime.py`, then the heal
 2. the locked packages (`scripts/setup/requirements.lock`) and the agent tools from `plugins/ansys-mcp/` (a copy, not editable);
 3. `machine.config.yaml` in the install home (Ansys path and version, license mode, Fluent cores, demo mode);
 4. the NASA example geometry, about 4.9 GB, resumable;
-5. the Hermes profile `ansys-rerate-agent` with its six MCP servers. Your default Hermes profile is not changed.
+5. the Hermes profile `ansys-rerate-agent` with its six limited-action MCP servers. Your default Hermes profile is not changed.
 
 Options: `-License student|commercial`, `-SkipExampleData`, `-SkipProfile`, `-Python <path>`, `-Proxy <url>`.
 Each step is safe to run again. Run outputs and machine state stay in the install home, never in the clone.

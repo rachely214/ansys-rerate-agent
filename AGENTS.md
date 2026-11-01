@@ -5,7 +5,7 @@ unavailable, read the corresponding SKILL.md in `agents/rerate-engineer/skills/`
 each case's `case.yaml`; method and order live in `rerate-run`. README and SETUP own installation. Validation
 records and example outputs are evidence, not instructions.
 
-One agent owns the dependent stages. Drive Ansys only through the six MCP servers in `plugins/ansys-mcp/`. Do not
+One agent owns the dependent stages. Drive Ansys only through the six limited-action MCP servers in `plugins/ansys-mcp/`. Do not
 substitute a script, a saved result or an earlier run's numbers for a live tool call.
 
 ## Invariants

@@ -1,9 +1,9 @@
 # Security
 
 ## What runs where
-- The MCP servers run on the Windows host as the logged-in user and start/stop Ansys applications, write files
+- The six limited-action MCP servers run on the Windows host as the logged-in user and start/stop Ansys applications, write files
   under the install home's `runs\` and `work\` folders (`%LOCALAPPDATA%\ansys-rerate-agent` by default), and read the case's geometry and material files.
-- No server exposes a tool that executes agent-supplied code. In-app scripts are fixed files in the package;
+- Limited-action means specific actions only: no server exposes a tool that executes agent-supplied code. In-app scripts are fixed files in the package;
   only a JSON block of case values is substituted.
 - Stage tools close Ansys processes by name when `license.mode: student` (to free the single seat). Save open
   Ansys work before a run.

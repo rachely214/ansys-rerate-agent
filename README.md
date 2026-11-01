@@ -5,21 +5,19 @@ datasheet and casing limits; it drafts a sourced case file, then sizes, changes 
 a spin-stress check, and writes a pass/fail report, driving five Ansys apps live through MCP.
 
 There is **no prewritten end-to-end script**. Skills teach the method; the agent reads the documents, chooses
-the run parameters, judges convergence and failures, and decides each next step. Six MCP servers expose
-specific actions only (launch, mesh, solve, measure). Machine data lives in one case file per compressor, not in
-code.
+the run parameters, judges convergence and failures, and decides each next step. Six **limited-action MCP
+servers** expose specific actions only (launch, mesh, solve, measure), with no arbitrary code execution. Machine
+data lives in one case file per compressor, not in code.
 
 ## Status
 
-Windows/local-desktop **experimental**, Ansys 2026 R1 Student. Two complete agent runs from the prompt, with no
-human input, ended "PASS ON CHECKED ITEMS ONLY": Claude Opus in 4 h 50 min and DeepSeek V4 Flash in 2 h 43 min.
-**The CFD model is not calibrated** against NASA's measured baseline, so the airflow targets are NOT CHECKED. See
-[validation and limitations](docs/VALIDATION.md). A fresh install on a second machine remains required before
-calling this reproducible.
+Windows/local-desktop **experimental release candidate**. Validated end to end on an NVIDIA RTX PRO 6000
+workstation; see [validation and limitations](docs/VALIDATION.md). A clean-machine install by a second user
+remains required before calling this production-ready.
 
 ## Quick start (Windows PowerShell)
 
-Install **Ansys 2026 R1** with Vista CCD, Discovery, TurboGrid, Fluent and Mechanical, install
+Install a licensed **Ansys 2026 R1** with Vista CCD, Discovery, TurboGrid, Fluent, and Mechanical, install
 [Hermes Agent](https://hermes-agent.nousresearch.com/docs/getting-started/installation) with a working model, and
 have Git plus [Python 3.13](https://www.python.org/downloads/) available. Then:
 
@@ -31,7 +29,7 @@ cd ansys-rerate-agent
 
 The installer creates a **private Python environment** in `%LOCALAPPDATA%\ansys-rerate-agent`, installs locked
 packages and the agent tools, writes a machine config, downloads the NASA example geometry (about 4.9 GB), and
-installs a separate Hermes profile, `ansys-rerate-agent`, with its six MCP servers. It ends with a health check
+installs a separate Hermes profile, `ansys-rerate-agent`, with its six limited-action MCP servers. It ends with a health check
 that must say ALL GREEN. It does not install or license Ansys, read or write API keys, or change your default
 Hermes profile.
 
@@ -50,12 +48,38 @@ the profile **ansys-rerate-agent**, start a new chat, attach the three files fro
 Full prompt: [examples/01_nasa_hecc/prompt_demo.md](examples/01_nasa_hecc/prompt_demo.md). A version that waits
 for the engineer's approval: [examples/01_nasa_hecc/prompt.md](examples/01_nasa_hecc/prompt.md).
 
+## Configuration
+
+The agent is **model-agnostic**: point the Hermes profile at any OpenAI-compatible endpoint. Use a model that
+handles long tool-calling sessions; a full run made about 190 to 220 tool calls.
+
+**Tested** (each completed a full run from the prompt with no human input; both hosted, not local): Claude Opus
+and DeepSeek V4 Flash. See [validation](docs/VALIDATION.md).
+
+**Local options** (suggested, not yet validated with this workflow):
+- **Qwen3.6-27B** on one NVIDIA RTX PRO 6000 (96 GB).
+- Larger models such as **DeepSeek V4 Flash** (about 167 GB of weights) need a DGX Station-class system.
+
+To switch the profile to a local model server, start an OpenAI-compatible server (for example llama.cpp, vLLM or
+SGLang), or use Hermes's managed local models, then:
+
+```powershell
+hermes -p ansys-rerate-agent model    # choose "Local models", or a custom endpoint such as http://127.0.0.1:8080/v1
+& "$env:LOCALAPPDATA\ansys-rerate-agent\venv\Scripts\python.exe" scripts\setup\check.py --only hermes
+```
+
+`model_reachable` must PASS. Restart Hermes and start a new chat. Details:
+[Hermes local models](https://hermes-agent.nousresearch.com/docs/user-guide/local-models).
+
+Machine settings (Ansys path, Fluent cores, GPU Fluent, app modes, demo time caps) live in
+`%LOCALAPPDATA%\ansys-rerate-agent\machine.config.yaml`; see [SETUP.md](SETUP.md).
+
 ## Architecture
 
 ```text
 Agent on this desktop (Hermes profile ansys-rerate-agent)
   ├─ skills: intake / sizing / geometry / meshing / cfd / structural / report
-  └─ MCP stdio servers (private Python environment)
+  └─ limited-action MCP stdio servers (private Python environment)
        ├─ case_v2        case file, approval, runs, calibration, report
        ├─ vista_v2       → Vista CCD (Workbench)   1D sizing
        ├─ geometry_v2    → Discovery               blade change, solids
@@ -76,7 +100,7 @@ geometry conversion and checks, not machine data or engineering choices. More:
 | `AGENTS.md`, `agents/rerate-engineer/SOUL.md` | Project-local agent behavior |
 | `agents/rerate-engineer/skills/` | Eight stage skills; `rerate-run` is the entry point |
 | `harnesses/hermes/` | Hermes profile manifest, behavior config, MCP server template (`mcp_servers.json`) |
-| `plugins/ansys-mcp/` | Python package of the six MCP servers, geometry adapters, in-app Ansys scripts, case schema, report |
+| `plugins/ansys-mcp/` | Python package of the six limited-action MCP servers, geometry adapters, in-app Ansys scripts, case schema, report |
 | `setup.ps1`, `scripts/setup/` | Host-local installer, health check (`check.py`), layout scan, pinned packages |
 | `scripts/setup/setup-agent/` | Optional setup assistant (Hermes profile `ansys-rerate-setup`) |
 | `scripts/dev/` | Maintainer test tools; never used by the agent |

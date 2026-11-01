@@ -42,7 +42,8 @@ again.
 
 ## How the demo agent finds its tools
 
-The demo agent uses six tool servers. They speak MCP (Model Context Protocol), the standard way Hermes connects
+The demo agent uses six limited-action MCP servers (specific actions only, no arbitrary code execution). They
+speak MCP (Model Context Protocol), the standard way Hermes connects
 to outside tools, over stdio (Hermes starts each server as a child process).
 
 1. `harnesses/hermes/mcp_servers.json` is a template. It lists the six servers with two placeholders: the Python to run
@@ -55,7 +56,7 @@ to outside tools, over stdio (Hermes starts each server as a child process).
 4. The health check's mcp group starts each server from the profile config and lists its tools, the same way
    Hermes does.
 
-## The six tool servers
+## The six limited-action MCP servers
 
 Every long Ansys action is a `*_start` tool that returns at once, followed by a status tool. No tool runs
 arbitrary code; in-app scripts are fixed files in the package.
