@@ -29,7 +29,7 @@ setup/
   requirements.lock               pinned packages
   machine.config.template.yaml    -> %LOCALAPPDATA%/ansys-rerate-agent/machine.config.yaml (per machine)
   fetch_example_data.py  verify_layout.py  upgrade_config.py  _run_module.py
-examples/01_nasa_hecc/            prompt.md, inputs/, case.yaml, materials/, data_source.yaml, README.md, expected.md
+examples/01_nasa_hecc/            prompt.md, inputs/, case.yaml, materials/, data_source.yaml, README.md (expected outcome: docs/examples/01_nasa_hecc_expected.md)
 docs/                             HOW-IT-WORKS.md, VALIDATION.md, DECISIONS.md, ROADMAP.md, TROUBLESHOOTING.md
 tests/                            unit tests (no Ansys)
 dev/                              maintainer tools (mcp_call.py, clean_clone_test.py); not used by either agent

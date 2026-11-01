@@ -26,7 +26,7 @@ REQUIRED = ["LICENSE", "THIRD_PARTY_NOTICES.md", "SECURITY.md", "CONTRIBUTING.md
             "agent/skills/rerate-structural/SKILL.md", "agent/skills/rerate-report/SKILL.md",
             "docs/VALIDATION.md", "docs/DECISIONS.md", "docs/ROADMAP.md",
             "examples/01_nasa_hecc/case.yaml", "examples/01_nasa_hecc/prompt.md", "examples/01_nasa_hecc/README.md",
-            "examples/01_nasa_hecc/expected.md", "tests/test_core.py"]
+            "docs/examples/01_nasa_hecc_expected.md", "tests/test_core.py"]
 SKIP_DIRS = {".git", ".venv", ".local", "runs", "work", "__pycache__", "examples"}
 SCAN_EXT = {".py", ".md", ".yaml", ".yml", ".ps1", ".toml", ".txt", ".json"}
 # docs that intentionally discuss these values (scan report, validation evidence, history) are exempted by name

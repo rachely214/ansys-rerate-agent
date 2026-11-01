@@ -496,6 +496,26 @@ def check_python(home):
             % (len(res), ", ".join(mism)))
     else:
         add("packages", g, "PASS", "all %d packages import at the locked versions" % len(res))
+    # The runtime is installed as a copy (non-editable). A repo update that was not reinstalled leaves the tool
+    # servers on old code (seen: demo mode added in the repo, but the run used the old installed copy).
+    code2 = ("import json, hashlib, pathlib, rerate_mcp_v2\nroot = pathlib.Path(rerate_mcp_v2.__file__).parent\n"
+             "print(json.dumps({p.relative_to(root).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()\n"
+             "      for p in root.rglob('*') if p.is_file() and p.suffix in ('.py', '.yaml', '.json')}))\n")
+    inst = run_json(vp, code2, timeout=120) or {}
+    src = REPO / "runtime" / "src" / "rerate_mcp_v2"
+    import hashlib
+    repo = {p.relative_to(src).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
+            for p in src.rglob("*") if p.is_file() and p.suffix in (".py", ".yaml", ".json")
+            and "__pycache__" not in p.parts}
+    stale = sorted(k for k in repo if inst.get(k) != repo[k])
+    if not inst:
+        add("runtime_current", g, "SKIP", "runtime not installed yet")
+    elif stale:
+        add("runtime_current", g, "FAIL", "the installed tools are older than this repository (%d file(s) differ, "
+            "e.g. %s)" % (len(stale), ", ".join(stale[:3])),
+            "Run: python setup/install_runtime.py packages, then close Hermes completely and open it again.")
+    else:
+        add("runtime_current", g, "PASS", "installed tools match this repository")
 
 
 # ---------------------------------------------------------------- config

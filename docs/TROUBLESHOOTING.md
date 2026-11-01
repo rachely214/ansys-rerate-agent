@@ -110,6 +110,13 @@ ansys.mechanical.core, ansys.geometry.core and the agent runtime `rerate_mcp_v2`
 for the address). If antivirus software quarantines files during install (often the `.pyd` or `.exe` files of
 grpcio, vtk or pywin32), allow the install home folder and run the step again.
 
+### runtime_current
+**Means:** the agent's tools are installed as a copy of `runtime/` (so editing the repository never changes a
+running install by accident). This check compares that copy with the repository. A FAIL means the repository was
+updated (for example a `git pull`) but the tools were not reinstalled, so the agent would run old code.
+**Fix:** `python setup/install_runtime.py packages`, then close Hermes completely (including the tray icon) and
+open it again so the tool servers restart.
+
 ---
 
 ## config group

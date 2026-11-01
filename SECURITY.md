@@ -19,5 +19,5 @@ secrets. Never commit the install home, `.env` files or Hermes profile folders.
 Keep Hermes approval prompts enabled. Approval denial or timeout is a stop condition for the agent.
 
 ## Reporting
-Report vulnerabilities privately to the repository maintainers (add the contact when publishing). Do not
-open public issues for security problems.
+Report vulnerabilities privately through GitHub's private vulnerability reporting on this repository (Security
+tab, "Report a vulnerability"). Do not open public issues for security problems.

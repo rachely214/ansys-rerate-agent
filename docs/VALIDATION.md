@@ -55,7 +55,22 @@ What has been checked for this packaged layout (`setup/`, `agent/`, `runtime/`, 
     side (1.6 x inlet total) in the skill; fillet recovery keeps the fillet first; key check with a real test
     message; case copy instead of editing the example.
 - Not yet validated: a fresh install driven only by the setup assistant; a clean machine with only Ansys; a run
-  with the latest skill fixes.
+  with the demo-mode time caps active.
+- **Run 5, lighter model** (2026-10-29 23:08 to 01:51, 2 h 43 min, DeepSeek V4 Flash, `prompt_demo.md` text with
+  pre-approval, no human input; runs `NASA-HECC-rerate_20261029_231151` baseline, `..._20261030_002813` design):
+  - Verdict "PASS ON CHECKED ITEMS ONLY: 4 pass, 7 not checked". Strength PASS with the filleted root modelled
+    (root/fillet governs, 170 MPa, SF 4.86). Sizing 0.609 to 0.634 in, fits casing.
+  - Calibration NOT CALIBRATED: start field at 1.6 x inlet total converged in 700 iterations (as the skill now
+    advises); the step to 228.3 kPa stalled (22 % inlet reversal) and the agent stopped it.
+  - Design: choke start field converged (12.59 lbm/s, above target); the targeted-flow solve collapsed; the
+    agent recorded the aero rows NOT CHECKED and moved on, citing the demo rules.
+  - Integrity (session audited tool call by tool call): every case value identical to the example draft (only
+    formatting and two absolute file paths changed); blend start computed from this impeller (0.70), not reused;
+    no tool code, saved results or earlier reports read. It did read `expected.md` (now moved out of the example
+    folder) and listed earlier case copies to copy their path style (now forbidden in the run skill).
+  - Caveat found: the installed tools were an older copy without the demo-mode caps (the runtime is installed
+    non-editable and had not been reinstalled). The agent followed the time-box rule from its skills alone. The
+    health check now has `runtime_current`, which fails when the installed tools differ from the repository.
 
 Everything below is the history of the live validation runs. They were made with the earlier development layout
 (tools called through a developer harness, now `dev/mcp_call.py`); the engineering code is the same.

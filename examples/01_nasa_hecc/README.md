@@ -28,7 +28,7 @@ Hermes with the profile `ansys-rerate-agent`, start a new chat and paste the pro
 | `materials/ti6al4v_public.yaml` | Public material data for the impeller (cited in the file) |
 | `data_source.yaml` | Where the NASA geometry tables come from |
 | `geometry_data.README.md` | How the geometry tables are downloaded |
-| `expected.md` | What a successful run produces, and the honest expected verdict |
+| (moved) | The expected outcome is in `docs/examples/01_nasa_hecc_expected.md`, outside this folder, so the agent does not read the expected verdict before a run |
 
 ## Geometry data
 
@@ -40,4 +40,4 @@ download can live outside the repository.
 ## Honest limits
 
 The CFD model has not been calibrated against NASA's measured baseline (it over-predicts flow and efficiency),
-so the aero targets are not expected to be demonstrated. See `expected.md` and `docs/VALIDATION.md`.
+so the aero targets are not expected to be demonstrated. See `docs/examples/01_nasa_hecc_expected.md` and `docs/VALIDATION.md`.

@@ -160,4 +160,4 @@ approval, the tools refuse to run until it is approved again.
 | `REPORT.md` | `build_report`: the pass/fail report |
 
 The report reads only this run's `run.json` and approved case, never older runs.
-`examples/01_nasa_hecc/expected.md` lists what a finished example run contains.
+`docs/examples/01_nasa_hecc_expected.md` lists what a finished example run contains.

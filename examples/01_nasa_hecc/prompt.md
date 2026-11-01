@@ -24,4 +24,4 @@ geometry is NASA's published coordinate tables, already referenced by the draft 
 ---
 
 What to expect: about 2 to 4.5 hours on a 4-core computer with the Student license, most of it CFD.
-`expected.md` describes what a finished run looks like.
+`docs/examples/01_nasa_hecc_expected.md` describes what a finished run looks like.

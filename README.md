@@ -13,18 +13,22 @@ Status: experimental.
 
 Details and evidence: [docs/VALIDATION.md](docs/VALIDATION.md).
 
-Validated (Windows 11, Ansys 2026 R1 Student, GUI mode, tools called over real MCP stdio without an LLM):
+Validated (Windows 11, Ansys 2026 R1 Student, GUI mode):
+- **The agent end to end from the prompt**, in a freshly installed profile, no human input: run 4 (Claude Opus,
+  4 h 50 min) and a demo-mode style run (DeepSeek V4 Flash, about 2 h 45 min). Both gave "PASS ON CHECKED ITEMS
+  ONLY": casing fit, speed, strength and the 1D flow estimate pass; the aero rows are NOT CHECKED.
 - Every stage runs live on the NASA compressor example (examples/01_nasa_hecc): 1D sizing, geometry change and solids, passage mesh, CFD,
   structural, report.
 - CFD calibration against NASA's measured baseline was run. Result: NOT CALIBRATED (see limits).
-- Strength check at overspeed with the root fillet, mesh-converged.
+- Strength check at overspeed, mesh-converged.
 - A second, deliberately changed case (other speed, units, material) is carried through every stage and the report.
-- Unit tests and the layout scan pass. The health check is ALL GREEN on a test install of this packaged layout.
+- Unit tests and the layout scan pass. The health check is ALL GREEN on this machine's install.
 
 Not validated yet:
-- The agent run from `examples/01_nasa_hecc/prompt.md` in a freshly installed profile, end to end (in progress).
-- A fresh install driven by the setup assistant.
-- Commercial license behaviour (concurrent apps, GPU Fluent, headless modes), a second machine, other Ansys versions.
+- A fresh install on a second, clean machine driven only by the setup assistant.
+- A full run with demo-mode time caps active (the caps are unit-tested; the DeepSeek run above used an older
+  installed copy of the tools without them).
+- Commercial license behaviour (concurrent apps, GPU Fluent, headless modes), other Ansys versions.
 
 ## Known limits
 

@@ -23,8 +23,10 @@ run folder.
 ## Method
 0. **Work on a copy.** If the case file the user points to is part of an example or a shared folder, first copy
    that folder's `case.yaml` (and its `materials/` folder if present) into a new folder under the runs area
-   (`<install home>\runs\cases\<case name>_<date>\`) and edit only the copy; keep `geometry.source` and
-   `material.library_file` pointing at the original files (absolute paths). Never edit the original example.
+   (`<install home>\runs\cases\<case name>_<date>\`) and edit only the copy. In the copy, change
+   `geometry.source` and `material.library_file` to ABSOLUTE paths of the original files right away (a relative
+   path stops resolving once the file moves): the geometry data is under `<install home>\example-data\<example>\`,
+   the material file is next to the original case. Then validate. Never edit the original example.
 1. Read every document fully. List each number you can use, with document and section.
 2. Write `case.yaml` next to the documents. Every quantity is `{value, unit, source}`.
    - `source` names the document and the table or section, e.g. `"02 datasheet, Operating point"`.

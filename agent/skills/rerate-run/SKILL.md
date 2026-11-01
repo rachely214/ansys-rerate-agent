@@ -30,6 +30,9 @@ apps; every engineering value comes from the approved `case.yaml`, and every cho
 Success: a report written from this run's own recorded stages, every row PASS, FAIL or NOT CHECKED with a reason.
 
 ## Hard rules
+0. **Work only from this run.** Read the customer's documents, the case file and the skills. Do not read earlier run
+   folders, other case copies, reports, validation documents or the repository's docs: they hold results from
+   other runs and would bias this one. Every result you report comes from a tool call in this session.
 1. **No simulation before approval.** Stage tools refuse unapproved or edited cases. Never call `case_approve`
    until the engineer has said they approve the values you showed. If a required value is missing, ask; never
    copy a value from another case or from these skills.

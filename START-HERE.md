@@ -106,7 +106,7 @@ How long it takes: about 2 to 5 hours on a 4-core computer with the Student lice
 
 What you get: a run folder under `%LOCALAPPDATA%\ansys-rerate-agent\runs\` with pictures, the Ansys files,
 `REPORT.md` (a pass/fail report) and `RUN_NOTES.md` (the agent's notes and choices). Each check is PASS, FAIL or
-NOT CHECKED, with a reason. `examples/01_nasa_hecc/expected.md` shows what a finished run looks like. Expect
+NOT CHECKED, with a reason. `docs/examples/01_nasa_hecc_expected.md` shows what a finished run looks like. Expect
 "PASS ON CHECKED ITEMS ONLY": the CFD model is not calibrated, so the airflow results cannot pass. README.md
 explains why.
 

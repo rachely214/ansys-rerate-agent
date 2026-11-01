@@ -31,4 +31,4 @@ and keep going.
 
 What to expect: one plain line per step while each Ansys app opens on screen, then a report. Results that the
 simplified model could not settle are NOT CHECKED with a reason; that is the expected, honest outcome
-(`expected.md`).
+(`docs/examples/01_nasa_hecc_expected.md`).
