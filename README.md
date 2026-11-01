@@ -73,7 +73,7 @@ geometry conversion and checks, not machine data or engineering choices. More:
 
 | Path | Purpose |
 |---|---|
-| `agents/rerate-engineer/SOUL.md` | Agent behavior |
+| `AGENTS.md`, `agents/rerate-engineer/SOUL.md` | Project-local agent behavior |
 | `agents/rerate-engineer/skills/` | Eight stage skills; `rerate-run` is the entry point |
 | `harnesses/hermes/` | Hermes profile manifest, behavior config, MCP server template (`mcp_servers.json`) |
 | `plugins/ansys-mcp/` | Python package of the six MCP servers, geometry adapters, in-app Ansys scripts, case schema, report |
