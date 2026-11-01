@@ -1,6 +1,6 @@
 """Developer test (no LLM): back-pressure continuation for the calibration baseline, in small steps.
 
-  python dev/stability_test.py <case_path> <attempt_name> <blend_start_fraction> <p_start_pa> <p_step1_pa> [...]
+  python scripts/dev/stability_test.py <case_path> <attempt_name> <blend_start_fraction> <p_start_pa> <p_step1_pa> [...]
 
 blend_start_fraction only labels the unchanged geometry (scale 1.0); it has no effect on the shape.
 
@@ -8,7 +8,7 @@ Starts a new run from the approved case, builds unchanged geometry (scale 1.0), 
 splitter, sets up Fluent at the case values, solves a start field at p_start (reinitialised), then steps the
 outlet static pressure through each p_step without reinitialising. Each step must converge (case rule) before the
 next; then restore_case_back_pressure and a final solve at the case value (recorded as stage 'cfd').
-Nothing in the case is changed. Needs the broker: python dev/mcp_call.py --broker.
+Nothing in the case is changed. Needs the broker: python scripts/dev/mcp_call.py --broker.
 Progress goes to <install home>/work/stability_<attempt>.json after every poll.
 """
 from __future__ import annotations

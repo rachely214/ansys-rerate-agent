@@ -19,11 +19,11 @@ guarantees. Anything not listed as run is not validated.
 Details for each are in the history sections below.
 
 ## Packaging (current)
-What has been checked for this packaged layout (`setup/`, `agent/`, `runtime/`, install home under
+What has been checked for this packaged layout (`scripts/setup/`, `agent/`, `plugins/ansys-mcp/`, install home under
 `%LOCALAPPDATA%\ansys-rerate-agent`):
 - `python -m unittest discover -s tests`: 71 tests pass (2026-10-29).
-- `python setup/verify_layout.py`: 41 of 41 required files present, 0 scan findings (2026-10-29).
-- `python setup/check.py` on this machine's real install (installer steps run directly, not by the setup
+- `python scripts/setup/verify_layout.py`: 41 of 41 required files present, 0 scan findings (2026-10-29).
+- `python scripts/setup/check.py` on this machine's real install (installer steps run directly, not by the setup
   assistant): ALL GREEN, 33 items, including `model_reachable` (one real test message) and all six tool servers.
 - **Demo agent, end to end, from the prompt** (fresh `ansys-rerate-agent` profile, no memory, Claude Opus via the
   user's provider, approval pre-given in the prompt for an unattended test). Four attempts on 2026-10-28:
@@ -73,13 +73,13 @@ What has been checked for this packaged layout (`setup/`, `agent/`, `runtime/`, 
     health check now has `runtime_current`, which fails when the installed tools differ from the repository.
 
 Everything below is the history of the live validation runs. They were made with the earlier development layout
-(tools called through a developer harness, now `dev/mcp_call.py`); the engineering code is the same.
+(tools called through a developer harness, now `scripts/dev/mcp_call.py`); the engineering code is the same.
 
 ## Test setup
 - One Windows 11 workstation, **Ansys 2026 R1 Student** (one app at a time, `license.mode: student`, CPU Fluent with
   4 processes, 128,000-node structural and 1M-cell CFD limits), Python 3.13, Hermes Agent desktop.
 - Apps in GUI mode over Remote Desktop.
-- Tools were exercised over real MCP stdio through `dev/mcp_call.py` (same transport Hermes uses), without an
+- Tools were exercised over real MCP stdio through `scripts/dev/mcp_call.py` (same transport Hermes uses), without an
   LLM in the loop, plus unit tests. The full agent-driven run from `examples/01_nasa_hecc/prompt.md` in a new chat is
   listed under "Not yet validated" until it is done.
 
@@ -96,9 +96,9 @@ Everything below is the history of the live validation runs. They were made with
 - `python -m unittest discover -s tests`: 26 tests pass (units, case loader and approval hash, report scorecard and
   verdict labels, geometry adapters on a synthetic impeller, background job state machine including timeout,
   desktop-session parsing, config upgrade).
-- `setup/verify_layout.py`: no example-machine values, user paths, temp paths, usernames or key-like strings
+- `scripts/setup/verify_layout.py`: no example-machine values, user paths, temp paths, usernames or key-like strings
   outside `examples/`; no arbitrary-code tools in the MCP package.
-- Health check, mcp group (then `doctor.py --mcp`, now `setup/check.py`): all six servers start over stdio and list their tools.
+- Health check, mcp group (then `doctor.py --mcp`, now `scripts/setup/check.py`): all six servers start over stdio and list their tools.
 - Geometry adapter vs the earlier V1 converter on the same NASA tables: changed blade sections match to within
   0.03 mm (largest at the extrapolated end section), hub to 0.000003 mm.
 
@@ -260,7 +260,7 @@ is the likely remedy.
 ### Clean-clone install test
 Earlier development layout (history): a clone test (git clone into a new folder, the old PowerShell setup with
 Hermes skipped, new venv from requirements.lock, local config generated), unit tests, `verify_layout.py`, and the
-old server start check. The current maintainer script is `dev/clean_clone_test.py`.
+old server start check. The current maintainer script is `scripts/dev/clean_clone_test.py`.
 Result: all steps exit 0, all six servers start from the clone, no machine or run files tracked by git.
 Same machine (Ansys and Python already installed); a second machine is still not validated.
 

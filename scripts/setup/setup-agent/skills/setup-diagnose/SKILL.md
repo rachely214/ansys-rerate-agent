@@ -11,7 +11,7 @@ metadata:
 
 # Setup: diagnose and fix
 
-Start from the failing item's id in `PY setup/check.py` (or `--json` for details). Read its entry in
+Start from the failing item's id in `PY scripts/setup/check.py` (or `--json` for details). Read its entry in
 `docs/TROUBLESHOOTING.md`, apply the fix, then rerun the check. One item at a time, first FAIL first.
 
 Success: the item turns PASS (or WARN with a reason the user accepts) on the next check.
@@ -41,4 +41,4 @@ Load `ansys-host-diagnostics` for app launch problems, licensing and the desktop
 - Change one thing, then rerun the check.
 - Never delete the user's files outside the install home. Inside the install home, ask before deleting `runs\`.
 - If two different fixes failed for the same item, stop and tell the user plainly what is wrong and what you
-  tried. Suggest they share `PY setup/check.py --json` output with whoever supports them.
+  tried. Suggest they share `PY scripts/setup/check.py --json` output with whoever supports them.

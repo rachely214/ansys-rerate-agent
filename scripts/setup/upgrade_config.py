@@ -1,6 +1,6 @@
 """Add new keys from the config template to an existing machine config without changing values already set.
 
-  python setup/upgrade_config.py [--config PATH] [--home DIR]
+  python scripts/setup/upgrade_config.py [--config PATH] [--home DIR]
 
 Default config: <install home>/machine.config.yaml, where the install home is --home, else ANSYS_RERATE_HOME,
 else %LOCALAPPDATA%/ansys-rerate-agent. Run after updating this repository. Prints the keys it added.
@@ -16,9 +16,9 @@ from pathlib import Path
 
 import yaml
 
-ROOT = Path(__file__).resolve().parents[1]
-TEMPLATE = ROOT / "setup" / "machine.config.template.yaml"
-sys.path.insert(0, str(ROOT / "setup"))
+ROOT = Path(__file__).resolve().parents[2]
+TEMPLATE = ROOT / "scripts" / "setup" / "machine.config.template.yaml"
+sys.path.insert(0, str(ROOT / "scripts" / "setup"))
 from check import install_home  # noqa: E402
 
 
@@ -59,7 +59,7 @@ def main() -> int:
     a = p.parse_args()
     cfg_path = Path(a.config) if a.config else install_home(a.home) / "machine.config.yaml"
     if not cfg_path.exists():
-        print(f"No machine config at {cfg_path}. Create it first: python setup/install_runtime.py config")
+        print(f"No machine config at {cfg_path}. Create it first: python scripts/setup/install_runtime.py config")
         return 1
     cfg = yaml.safe_load(cfg_path.read_text(encoding="utf-8")) or {}
     added = merge_missing(cfg, load_template())

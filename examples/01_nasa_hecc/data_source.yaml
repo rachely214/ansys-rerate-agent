@@ -1,5 +1,5 @@
 # Public source of the example-01 geometry (NASA Technical Reports Server, distribution: PUBLIC).
-# Used by setup/fetch_example_data.py. The data is downloaded, never committed.
+# Used by scripts/setup/fetch_example_data.py. The data is downloaded, never committed.
 citation: "Medic G. et al., NASA/CR-2014-218114/REV1 (High Efficiency Centrifugal Compressor for Rotorcraft
   Applications), supplemental files. NASA Glenn Research Center. NTRS 20180001472."
 record: https://ntrs.nasa.gov/citations/20180001472

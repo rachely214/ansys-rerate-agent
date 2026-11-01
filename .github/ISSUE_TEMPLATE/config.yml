@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Support checklist
+    url: https://github.com/rachely214/ansys-rerate-agent/blob/main/SUPPORT.md
+    about: Run the health check first; most problems print their fix.
+  - name: Security issue
+    url: https://github.com/rachely214/ansys-rerate-agent/security/advisories/new
+    about: Report vulnerabilities privately, not as a public issue.

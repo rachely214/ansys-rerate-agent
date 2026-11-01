@@ -1,6 +1,6 @@
-"""Installer steps for the Ansys re-rate agent. No AI involved. Each step is safe to run again.
+"""Installer steps for the compressor re-rate agent. No AI involved. Each step is safe to run again.
 
-  python setup/install_runtime.py STEP [options]
+  python scripts/setup/install_runtime.py STEP [options]
 
 Steps (run in this order; `all` runs venv, packages, config, profile):
   venv          --python PATH            create <home>/venv with Python 3.12 or 3.13 (refuses 3.14 and newer)
@@ -26,8 +26,8 @@ import subprocess
 import sys
 from pathlib import Path
 
-REPO = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(REPO / "setup"))
+REPO = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(REPO / "scripts" / "setup"))
 import check  # noqa: E402  (stdlib-only helpers shared with the health check)
 
 SECRET_WORDS = ("api_key", "apikey", "token", "secret", "password", "authorization")
@@ -76,7 +76,7 @@ def step_venv(a, home):
         good = sorted([x for x in check.find_pythons() if x[1] in GOOD], key=lambda x: x[1], reverse=True)
         if not good:
             raise StepError("No Python 3.12 or 3.13 found on this computer. Install Python 3.13, then run: "
-                            "python setup/install_runtime.py venv --python <path to python.exe>")
+                            "python scripts/setup/install_runtime.py venv --python <path to python.exe>")
         py = good[0][0]
     v = check.python_version(py)
     if v is None:
@@ -101,8 +101,8 @@ def step_packages(a, home):
     proxy = ["--proxy", a.proxy] if a.proxy else []
     pip = [vp, "-m", "pip", "--disable-pip-version-check"]
     sh(pip + ["install", "--upgrade", "pip"] + proxy)
-    runtime = REPO / "runtime"
-    jobs = [("locked packages", pip + ["install", "-r", REPO / "setup" / "requirements.lock"] + proxy),
+    runtime = REPO / "plugins" / "ansys-mcp"
+    jobs = [("locked packages", pip + ["install", "-r", REPO / "scripts" / "setup" / "requirements.lock"] + proxy),
             # non-editable copy: later edits in the repository do not change a running install by accident
             ("runtime", pip + ["install", "--no-deps", "--force-reinstall", runtime] + proxy)]
     for name, cmd in jobs:
@@ -122,7 +122,7 @@ def step_packages(a, home):
 
 
 def render_config(home, mode, processors, ver, root):
-    txt = (REPO / "setup" / "machine.config.template.yaml").read_text(encoding="utf-8")
+    txt = (REPO / "scripts" / "setup" / "machine.config.template.yaml").read_text(encoding="utf-8")
     vals = {"<ANSYS_VERSION>": str(ver), "<ANSYS_ROOT>": json.dumps(Path(root).as_posix()),
             "<LICENSE_MODE>": mode, "<FLUENT_PROCESSORS>": str(processors)}
     for k, v in vals.items():
@@ -136,7 +136,7 @@ def step_config(a, home):
         say("config: keeping existing %s; adding any new keys from the template" % cf)
         vp = check.venv_python(home)
         py = str(vp) if vp.exists() else sys.executable
-        r = subprocess.call([py, str(REPO / "setup" / "upgrade_config.py"), "--config", str(cf)])
+        r = subprocess.call([py, str(REPO / "scripts" / "setup" / "upgrade_config.py"), "--config", str(cf)])
         if r != 0:
             raise StepError("Could not update %s (see above)." % cf)
         return
@@ -184,16 +184,31 @@ def strip_secrets(obj, path, stripped):
 
 
 def render_servers(home):
-    tmpl = (REPO / "agent" / "mcp_servers.json").read_text(encoding="utf-8")
+    tmpl = (REPO / "harnesses" / "hermes" / "mcp_servers.json").read_text(encoding="utf-8")
     vp, cf = check.venv_python(home).resolve(), (home / "machine.config.yaml").resolve()
     tmpl = tmpl.replace("@@RERATE_PYTHON@@", json.dumps(str(vp))[1:-1]).replace(
         "@@RERATE_CONFIG@@", json.dumps(str(cf))[1:-1])
     if "@@" in tmpl:
-        raise StepError("agent/mcp_servers.json has an unknown @@TOKEN@@; the repository copy looks broken.")
+        raise StepError("harnesses/hermes/mcp_servers.json has an unknown @@TOKEN@@; the repository copy looks broken.")
     servers = json.loads(tmpl)
     for e in servers.values():
         e.setdefault("enabled", True)
     return servers
+
+
+def stage_distribution(dest: Path) -> Path:
+    """Assemble the Hermes profile distribution in one folder (Hermes installs from a folder with
+    distribution.yaml at its root): harnesses/hermes/{distribution.yaml, config.yaml} plus the agent's SOUL.md and
+    skills from agents/rerate-engineer/. Copy only; contents are unchanged."""
+    if dest.exists():
+        shutil.rmtree(dest)
+    dest.mkdir(parents=True)
+    for f in ("distribution.yaml", "config.yaml"):
+        shutil.copy2(REPO / "harnesses" / "hermes" / f, dest / f)
+    agent = REPO / "agents" / "rerate-engineer"
+    shutil.copy2(agent / "SOUL.md", dest / "SOUL.md")
+    shutil.copytree(agent / "skills", dest / "skills", ignore=shutil.ignore_patterns("__pycache__"))
+    return dest
 
 
 def step_profile(a, home):
@@ -215,11 +230,12 @@ def step_profile(a, home):
             old = yaml.safe_load(p.read_text(encoding="utf-8")) or {}
             shutil.copy2(p, p.with_suffix(".yaml.bak"))
             say("  existing profile config saved as %s" % p.with_suffix(".yaml.bak"))
-    cmd = [h, "profile", "install", REPO / "agent", "-y", "--name", a.name] + (["--force"] if exists else [])
+    dist = stage_distribution(home / "work" / "profile-distribution")
+    cmd = [h, "profile", "install", dist, "-y", "--name", a.name] + (["--force"] if exists else [])
     r = sh(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
     if r.returncode != 0:
         raise StepError("hermes profile install failed: %s" % ((r.stderr or r.stdout).strip()[-400:]))
-    say("  profile '%s' %s from %s" % (a.name, "reinstalled" if exists else "installed", REPO / "agent"))
+    say("  profile '%s' %s from %s" % (a.name, "reinstalled" if exists else "installed", REPO / "agents" / "rerate-engineer"))  # staged with harnesses/hermes
     p = check.profile_config_path(a.name)
     if not p:
         raise StepError("Could not find the config file of profile '%s'." % a.name)
@@ -257,7 +273,7 @@ def step_profile(a, home):
             % (a.name, a.name, prov or "<provider>"))
     elif not prov:
         say("WHAT YOU STILL NEED TO DO: choose a model: hermes -p %s model" % a.name)
-    say("Then run the health check (python setup/check.py): its model_reachable item sends one test message and\n"
+    say("Then run the health check (python scripts/setup/check.py): its model_reachable item sends one test message and\n"
         "proves the key works. Finally close Hermes completely, open it again, and start a NEW chat with profile '%s'."
         % a.name)
 

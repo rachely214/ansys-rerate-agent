@@ -3,7 +3,7 @@
 This repository's own code and documents are licensed under Apache-2.0 (see LICENSE).
 
 ## Software used (installed by setup, not vendored)
-Pinned versions are in `setup/requirements.lock`. Main components and their licenses (check each package's metadata
+Pinned versions are in `scripts/setup/requirements.lock`. Main components and their licenses (check each package's metadata
 for the authoritative text):
 
 | Package | Purpose | License |
@@ -15,7 +15,7 @@ for the authoritative text):
 
 Ansys products (Vista CCD, Discovery, TurboGrid, Fluent, Mechanical, Workbench) are commercial software licensed
 separately by Ansys, Inc. This repository contains no Ansys software or Ansys data files. In-app scripts in
-`runtime/src/rerate_mcp_v2/app_scripts/` are original code that calls documented Ansys scripting APIs.
+`plugins/ansys-mcp/src/rerate_mcp_v2/app_scripts/` are original code that calls documented Ansys scripting APIs.
 
 ## Data referenced but not included
 - Ti-6Al-4V properties in `examples/01_nasa_hecc/materials/ti6al4v_public.yaml` (committed; factual property

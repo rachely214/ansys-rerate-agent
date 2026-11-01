@@ -3,7 +3,7 @@ import sys
 import unittest
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "runtime" / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "plugins" / "ansys-mcp" / "src"))
 from rerate_mcp_v2 import demo_mode  # noqa: E402
 
 ON = {"enabled": True, "solve_cap_s": 2700.0, "total_budget_s": 5400.0, "allow_speedline": False}

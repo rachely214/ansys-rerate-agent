@@ -48,7 +48,7 @@ Success: the health check's ansys, config and mcp groups are PASS.
 - Hermes gives tool servers a reduced environment. The servers get everything from `RERATE_CONFIG` (set by the
   installer); do not add other variables by hand.
 - New or changed tools appear only in a NEW chat after Hermes restarts.
-- After updating the repository, run `PY setup/upgrade_config.py` to add new settings to machine.config.yaml.
+- After updating the repository, run `PY scripts/setup/upgrade_config.py` to add new settings to machine.config.yaml.
 
 ## Known app behaviours (handled in the tools; listed so you recognise them)
 - Discovery 2026 R1 needs the older gRPC protocol ("File X.py does not exist" otherwise); the geometry tool forces it.

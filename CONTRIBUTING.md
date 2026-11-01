@@ -2,7 +2,7 @@
 
 ## Principles (keep these)
 1. **No machine data in code.** Numbers for a specific compressor belong in its `case.yaml`, with a source.
-   `setup/verify_layout.py` scans for known example values, user paths and key-like strings.
+   `scripts/setup/verify_layout.py` scans for known example values, user paths and key-like strings.
 2. **No end-to-end scripts.** Skills describe method and judgement; MCP tools perform one specific action each.
 3. **No arbitrary-code tools.** A new capability is a new named action with typed parameters. In-app scripts are
    fixed files; pass values as a JSON block.
@@ -24,8 +24,8 @@ Run these from the repository folder with the install-home Python
 (`%LOCALAPPDATA%\ansys-rerate-agent\venv\Scripts\python.exe`, written as `python` below):
 ```
 python -m unittest discover -s tests -v
-python setup/verify_layout.py
-python setup/check.py
+python scripts/setup/verify_layout.py
+python scripts/setup/check.py
 ```
 Describe what was run live (which Ansys version and license) in the PR and update `docs/VALIDATION.md`.
 Do not commit run outputs, anything from the install home, credentials, Ansys data files or third-party data with unclear rights.

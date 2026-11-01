@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "runtime" / "src"))
+sys.path.insert(0, str(ROOT / "plugins" / "ansys-mcp" / "src"))
 
 from rerate_mcp_v2.servers.fluent_server import converged  # noqa: E402
 

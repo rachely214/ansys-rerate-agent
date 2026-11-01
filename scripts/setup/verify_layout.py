@@ -10,28 +10,30 @@ import re
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 REQUIRED = ["LICENSE", "THIRD_PARTY_NOTICES.md", "SECURITY.md", "CONTRIBUTING.md", ".gitignore",
-            "runtime/pyproject.toml", "runtime/src/rerate_mcp_v2/schema/case_schema.yaml",
-            "setup/requirements.lock", "setup/machine.config.template.yaml",
-            "START-HERE.md", "README.md", "docs/HOW-IT-WORKS.md", "docs/TROUBLESHOOTING.md",
-            "setup/check.py", "setup/install_runtime.py",
-            "setup/setup-agent/SOUL.md", "setup/setup-agent/distribution.yaml", "setup/setup-agent/config.yaml",
-            "setup/setup-agent/skills/setup-run/SKILL.md", "setup/setup-agent/skills/setup-diagnose/SKILL.md",
-            "setup/setup-agent/skills/ansys-host-diagnostics/SKILL.md",
-            "agent/distribution.yaml", "agent/SOUL.md", "agent/config.yaml", "agent/mcp_servers.json",
-            "agent/skills/rerate-run/SKILL.md", "agent/skills/rerate-intake/SKILL.md",
-            "agent/skills/rerate-sizing/SKILL.md", "agent/skills/rerate-geometry/SKILL.md",
-            "agent/skills/rerate-meshing/SKILL.md", "agent/skills/rerate-cfd/SKILL.md",
-            "agent/skills/rerate-structural/SKILL.md", "agent/skills/rerate-report/SKILL.md",
+            "plugins/ansys-mcp/pyproject.toml", "plugins/ansys-mcp/src/rerate_mcp_v2/schema/case_schema.yaml",
+            "scripts/setup/requirements.lock", "scripts/setup/machine.config.template.yaml",
+            "SETUP.md", "setup.ps1", "README.md", "docs/HOW-IT-WORKS.md", "docs/TROUBLESHOOTING.md",
+            "scripts/setup/check.py", "scripts/setup/install_runtime.py",
+            "scripts/setup/setup-agent/SOUL.md", "scripts/setup/setup-agent/distribution.yaml", "scripts/setup/setup-agent/config.yaml",
+            "scripts/setup/setup-agent/skills/setup-run/SKILL.md", "scripts/setup/setup-agent/skills/setup-diagnose/SKILL.md",
+            "scripts/setup/setup-agent/skills/ansys-host-diagnostics/SKILL.md",
+            "harnesses/hermes/distribution.yaml", "agents/rerate-engineer/SOUL.md", "harnesses/hermes/config.yaml", "harnesses/hermes/mcp_servers.json",
+            "agents/rerate-engineer/skills/rerate-run/SKILL.md", "agents/rerate-engineer/skills/rerate-intake/SKILL.md",
+            "agents/rerate-engineer/skills/rerate-sizing/SKILL.md", "agents/rerate-engineer/skills/rerate-geometry/SKILL.md",
+            "agents/rerate-engineer/skills/rerate-meshing/SKILL.md", "agents/rerate-engineer/skills/rerate-cfd/SKILL.md",
+            "agents/rerate-engineer/skills/rerate-structural/SKILL.md", "agents/rerate-engineer/skills/rerate-report/SKILL.md",
             "docs/VALIDATION.md", "docs/DECISIONS.md", "docs/ROADMAP.md",
             "examples/01_nasa_hecc/case.yaml", "examples/01_nasa_hecc/prompt.md", "examples/01_nasa_hecc/README.md",
             "docs/examples/01_nasa_hecc_expected.md", "tests/test_core.py"]
 SKIP_DIRS = {".git", ".venv", ".local", "runs", "work", "__pycache__", "examples"}
 SCAN_EXT = {".py", ".md", ".yaml", ".yml", ".ps1", ".toml", ".txt", ".json"}
 # docs that intentionally discuss these values (scan report, validation evidence, history) are exempted by name
-EXEMPT = {"docs/VALIDATION.md", "setup/verify_layout.py",
-          "setup/requirements.lock", "THIRD_PARTY_NOTICES.md"}
+EXEMPT = {"docs/VALIDATION.md", "scripts/setup/verify_layout.py",
+          "scripts/setup/requirements.lock", "THIRD_PARTY_NOTICES.md",
+          # describe the worked example and its recorded results (documentation, not code or skills)
+          "README.md", "docs/RELEASE_CHECKLIST.md"}
 PATTERNS = {
     "HECC number": r"(?<![\d.])(10\.85|11\.5|4\.68|4\.60|0\.609|0\.650|21789|21,789|22878|75842|228\.3|228300|"
                    r"121347|121\.35|0\.706|0\.6115|8\.4997|8\.804|12\.59)(?![\d])",
@@ -57,7 +59,7 @@ def scan() -> list[str]:
                 for m in re.finditer(pat, txt):
                     line = txt.count("\n", 0, m.start()) + 1
                     out.append(f"{rel}:{line}: {name}: '{m.group(0)}'")
-        if rel.startswith("runtime/") and p.suffix == ".py" and re.search(ARBITRARY, txt):
+        if rel.startswith("plugins/ansys-mcp/") and p.suffix == ".py" and re.search(ARBITRARY, txt):
             out.append(f"{rel}: defines an arbitrary-code tool")
     return out
 

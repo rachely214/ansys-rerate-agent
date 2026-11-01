@@ -1,6 +1,6 @@
 """Download the example geometry data from its public source (the data is never committed to the repository).
 
-  python setup/fetch_example_data.py --example 01_nasa_hecc [--home DIR] [--zip PATH] [--from-dir DIR]
+  python scripts/setup/fetch_example_data.py --example 01_nasa_hecc [--home DIR] [--zip PATH] [--from-dir DIR]
 
 Reads examples/<example>/data_source.yaml (URL, file name, members to extract, expected files). Downloads the
 archive into <install home>/downloads with resume support, then extracts only the listed members into
@@ -18,8 +18,8 @@ from pathlib import Path
 
 import yaml
 
-ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "setup"))
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "scripts" / "setup"))
 from check import install_home  # noqa: E402
 
 CHUNK = 1 << 20

@@ -1,6 +1,6 @@
 # Troubleshooting
 
-This page explains every item of the health check (`python setup/check.py`) in plain words, and what to do when
+This page explains every item of the health check (`python scripts/setup/check.py`) in plain words, and what to do when
 it is not green. The setup assistant reads this page; you can too.
 
 How to read the check: `[PASS]` is fine, `[WARN]` works but deserves attention, `[FAIL]` must be fixed before a
@@ -99,22 +99,22 @@ needed). Do not uninstall other Pythons; this setup uses its own isolated copy.
 
 ### venv_present
 **Means:** the private Python environment in `<install home>\venv` exists and uses Python 3.12 or 3.13.
-**Fix:** `python setup/install_runtime.py venv --python <path to Python 3.13>`. If an old venv uses the wrong
+**Fix:** `python scripts/setup/install_runtime.py venv --python <path to Python 3.13>`. If an old venv uses the wrong
 version, delete the `venv` folder first.
 
 ### packages
 **Means:** inside the venv these import: fastmcp, yaml, numpy, ansys.fluent.core, ansys.turbogrid.core,
 ansys.mechanical.core, ansys.geometry.core and the agent runtime `rerate_mcp_v2`. A version different from
-`setup/requirements.lock` is a warning; a missing package is a failure.
-**Fix:** `python setup/install_runtime.py packages`. Behind a company proxy add `--proxy http://host:port` (ask IT
+`scripts/setup/requirements.lock` is a warning; a missing package is a failure.
+**Fix:** `python scripts/setup/install_runtime.py packages`. Behind a company proxy add `--proxy http://host:port` (ask IT
 for the address). If antivirus software quarantines files during install (often the `.pyd` or `.exe` files of
 grpcio, vtk or pywin32), allow the install home folder and run the step again.
 
 ### runtime_current
-**Means:** the agent's tools are installed as a copy of `runtime/` (so editing the repository never changes a
+**Means:** the agent's tools are installed as a copy of `plugins/ansys-mcp/` (so editing the repository never changes a
 running install by accident). This check compares that copy with the repository. A FAIL means the repository was
 updated (for example a `git pull`) but the tools were not reinstalled, so the agent would run old code.
-**Fix:** `python setup/install_runtime.py packages`, then close Hermes completely (including the tray icon) and
+**Fix:** `python scripts/setup/install_runtime.py packages`, then close Hermes completely (including the tray icon) and
 open it again so the tool servers restart.
 
 ---
@@ -124,15 +124,15 @@ open it again so the tool servers restart.
 ### machine_config
 **Means:** `<install home>\machine.config.yaml` exists and parses, `ansys.root` points at a real folder,
 `license.mode` is student or commercial, and the runs and work folders are writable.
-**Fix:** `python setup/install_runtime.py config --license student` (or `commercial`). To start over add
-`--force` (the old file is kept as `.bak`). After updating the repository, `python setup/upgrade_config.py` adds new
+**Fix:** `python scripts/setup/install_runtime.py config --license student` (or `commercial`). To start over add
+`--force` (the old file is kept as `.bak`). After updating the repository, `python scripts/setup/upgrade_config.py` adds new
 keys without touching your values.
 
 ### example_data
 **Means:** the NASA compressor geometry tables for example 01 are in
 `<install home>\example-data\01_nasa_hecc\geometry_data`. They come from a public NASA archive and are not shipped
 with the repository.
-**Fix:** `python setup/install_runtime.py example-data`. It downloads about 5 GB from ntrs.nasa.gov into
+**Fix:** `python scripts/setup/install_runtime.py example-data`. It downloads about 5 GB from ntrs.nasa.gov into
 `<install home>\downloads`; if it stops, run it again and it continues. If you already have the zip file, add
 `--zip <path>`.
 
@@ -146,7 +146,7 @@ with the repository.
 
 ### profile_installed
 **Means:** the demo agent's Hermes profile (default name `ansys-rerate-agent`) exists.
-**Fix:** `python setup/install_runtime.py profile`. Your default Hermes profile is never changed.
+**Fix:** `python scripts/setup/install_runtime.py profile`. Your default Hermes profile is never changed.
 
 ### profile_mcp_wired
 **Means:** the profile's `config.yaml` lists the 6 tool servers (case_v2, vista_v2, geometry_v2, turbogrid_v2,
@@ -154,7 +154,7 @@ fluent_v2, mechanical_v2), each started with the install-home venv Python, and e
 at the machine config. Hermes passes only a short list of safe environment variables to tool servers (PATH,
 TEMP, USERPROFILE and similar); anything else, such as your own variables, does not reach them. That is why the
 config path is written into the profile and why the runtime sets `AWP_ROOT261` itself from the machine config.
-**Fix:** `python setup/install_runtime.py profile`, then close Hermes completely and reopen it.
+**Fix:** `python scripts/setup/install_runtime.py profile`, then close Hermes completely and reopen it.
 
 ### profile_model_set
 **Means:** the profile has a model and a provider chosen. The profile step copies these settings (never keys)
@@ -181,7 +181,7 @@ its key inside its own config.yaml; new profiles get the model choice but, corre
 ### skills_present
 **Means:** the 8 demo skills are installed in the profile: rerate-run, rerate-intake, rerate-sizing,
 rerate-geometry, rerate-meshing, rerate-cfd, rerate-structural, rerate-report.
-**Fix:** `python setup/install_runtime.py profile` (reinstalls the skills; your own skills stay).
+**Fix:** `python scripts/setup/install_runtime.py profile` (reinstalls the skills; your own skills stay).
 
 ### stale_servers
 **Means:** a tool server process is still running code from before the last runtime install. Tool servers are

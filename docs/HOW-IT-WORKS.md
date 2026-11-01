@@ -7,7 +7,7 @@ real files so an engineer can check them.
 
 | Phase | Who does it | What happens | Done when |
 |---|---|---|---|
-| 1. Setup | The **setup assistant** (Hermes profile `ansys-rerate-setup`) plus the health check `setup/check.py` | Installs the tools on this computer and connects them to the demo agent | `python setup/check.py` prints **ALL GREEN** |
+| 1. Setup | The **setup assistant** (Hermes profile `ansys-rerate-setup`) plus the health check `scripts/setup/check.py` | Installs the tools on this computer and connects them to the demo agent | `python scripts/setup/check.py` prints **ALL GREEN** |
 | 2. Demo | The **demo agent** (Hermes profile `ansys-rerate-agent`) | Runs the engineering study: documents, case, sizing, geometry, mesh, CFD, structural, report | `REPORT.md` is written |
 
 The two agents are kept apart on purpose.
@@ -16,7 +16,7 @@ The two agents are kept apart on purpose.
   engineering.
 - The demo agent knows only engineering. If a tool says the computer is not ready, it says so in plain words and
   stops. It never tries to repair the computer.
-- Readiness is decided by `setup/check.py`, a fixed script with no AI in it. It never changes anything and never
+- Readiness is decided by `scripts/setup/check.py`, a fixed script with no AI in it. It never changes anything and never
   starts an Ansys app. Each item is PASS, WARN, FAIL or SKIP; the last line is ALL GREEN or `NOT READY: N problems`.
   Groups: system, ansys, python, config, hermes, mcp. Every item is explained in `docs/TROUBLESHOOTING.md`.
 
@@ -30,9 +30,9 @@ avoids OneDrive syncing, long paths and a dependency on where the repository was
 | Item | What it holds | Made by |
 |---|---|---|
 | `venv\` | A private Python 3.12 or 3.13 with the pinned packages and the tool package `rerate_mcp_v2` | `install_runtime.py venv`, `packages` |
-| `machine.config.yaml` | This computer's settings: Ansys folder and version, license mode, Fluent cores, app modes, folders | `install_runtime.py config` (from `setup/machine.config.template.yaml`) |
+| `machine.config.yaml` | This computer's settings: Ansys folder and version, license mode, Fluent cores, app modes, folders | `install_runtime.py config` (from `scripts/setup/machine.config.template.yaml`) |
 | `example-data\` | Downloaded example data, one subfolder per example (`01_nasa_hecc\`) | `install_runtime.py example-data` |
-| `downloads\` | The NASA archive while downloading (resumable) | `setup/fetch_example_data.py` |
+| `downloads\` | The NASA archive while downloading (resumable) | `scripts/setup/fetch_example_data.py` |
 | `runs\` | One folder per run, plus `active_run.txt` (the run the tools are working on) | the demo agent's `start_run` |
 | `work\` | Scratch space for app logs and debug output | the tools |
 | `logs\` | Log files | the tools |
@@ -45,9 +45,9 @@ again.
 The demo agent uses six tool servers. They speak MCP (Model Context Protocol), the standard way Hermes connects
 to outside tools, over stdio (Hermes starts each server as a child process).
 
-1. `agent/mcp_servers.json` is a template. It lists the six servers with two placeholders: the Python to run
+1. `harnesses/hermes/mcp_servers.json` is a template. It lists the six servers with two placeholders: the Python to run
    (`@@RERATE_PYTHON@@`) and the machine config (`@@RERATE_CONFIG@@`).
-2. `python setup/install_runtime.py profile` installs `agent/` as the Hermes profile `ansys-rerate-agent`, fills
+2. `python scripts/setup/install_runtime.py profile` installs `agents/rerate-engineer/` (SOUL, skills) with `harnesses/hermes/` (manifest, config) as the Hermes profile `ansys-rerate-agent`, fills
    in the placeholders with the install home's venv Python and `machine.config.yaml`, and writes the result into
    the profile's `config.yaml` under `mcp_servers`. Each server gets the environment variable `RERATE_CONFIG`
    pointing at the machine config. It also copies the model choice (never a key) from the default profile.
@@ -111,7 +111,7 @@ arbitrary code; in-app scripts are fixed files in the package.
 
 Skills are short instruction files the agent loads when it needs them.
 
-Demo agent (`agent/skills/`):
+Demo agent (`agents/rerate-engineer/skills/`):
 
 | Skill | What it does |
 |---|---|
@@ -124,7 +124,7 @@ Demo agent (`agent/skills/`):
 | `rerate-structural` | Spin stress at overspeed in Mechanical: blade body and root fillet, mesh study, safety factor |
 | `rerate-report` | Build the scorecard from this run only and summarise it |
 
-Setup assistant (`setup/setup-agent/skills/`):
+Setup assistant (`scripts/setup/setup-agent/skills/`):
 
 | Skill | What it does |
 |---|---|
@@ -137,7 +137,7 @@ Setup assistant (`setup/setup-agent/skills/`):
 The case file (`case.yaml`) holds every engineering value of the study: duty, targets, limits, geometry source,
 material, mesh and solver choices. Each value has a unit and a source (a document section, or
 `ENGINEERING CHOICE:` with a reason). Nothing has a default; a missing value is a question for the engineer. The
-schema is `runtime/src/rerate_mcp_v2/schema/case_schema.yaml`. The example's draft is
+schema is `plugins/ansys-mcp/src/rerate_mcp_v2/schema/case_schema.yaml`. The example's draft is
 `examples/01_nasa_hecc/case.yaml`.
 
 Approval works like a lock. `case_approve` stores the engineer's name and a SHA-256 hash of the case content.
@@ -161,3 +161,38 @@ approval, the tools refuse to run until it is approved again.
 
 The report reads only this run's `run.json` and approved case, never older runs.
 `docs/examples/01_nasa_hecc_expected.md` lists what a finished example run contains.
+
+## How a report scores results
+
+`REPORT.md` is built by `case_v2.build_report` from the active run's `run.json` only, never from older runs.
+
+- **PASS / FAIL:** a measured value from this run against the case target.
+- **PASS (indicative, fillet not modeled):** strength passes, but the blade was solved with a sharp root because
+  the filleted blade could not be built or meshed.
+- **FAIL (model-limited):** a FAIL where the stage declared fidelity limits (for example single passage, no
+  diffuser). The FAIL stands; the label says why it may not reflect the real machine.
+- **NOT CHECKED:** no stage produced the value. Never counted as a PASS.
+- **Calibration gate:** unless a matching baseline run says CALIBRATED, CFD rows cannot PASS. A would-be PASS
+  becomes NOT CHECKED with "model not calibrated"; unconverged CFD is never scored.
+- **Design point at target flow:** a re-rated design is evaluated at its target flow (targeted mass flow, with a
+  speedline fallback when demo mode is off). Choke below the target is a real FAIL with the maximum flow. No
+  converged point at the target means NOT CHECKED.
+
+Verdict lines: `PASS`, `FAIL: n of m checks fail`, or `PASS ON CHECKED ITEMS ONLY` (not a release PASS).
+
+## Agent vs fixed tools
+
+The agent:
+- reads the customer documents, drafts and validates the case, and asks the engineer about missing values;
+- chooses run parameters (blend start, mesh sizes, solve chunks, time caps) and states each choice;
+- judges convergence and failures, retries or recovers, and stops when the computer is not ready;
+- writes the summary.
+
+Fixed, tested tools do the Ansys work: the geometry recipe, meshing, solver setup, stress study and scorecard.
+The design change is one lever (exit blade height from the 1D sizing).
+
+## Demo mode
+
+`demo_mode` in `machine.config.yaml` (on by default) caps each Fluent solve at 45 minutes and all Fluent solving in
+one run at 90 minutes, and skips the fallback speedline. The Fluent tool enforces the caps; a capped result is NOT
+CHECKED, never PASS. Set `demo_mode: enabled: false` for a full engineering study.

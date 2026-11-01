@@ -1,140 +1,122 @@
-# ansys-rerate-agent
+# Compressor Re-rate Agent
 
-**New here? Read [START-HERE.md](START-HERE.md) first.** This page is for engineers and reviewers.
+**An agentic workflow for Ansys turbomachinery:** give the agent a customer's re-rate request, baseline
+datasheet and casing limits; it drafts a sourced case file, then sizes, changes the geometry, meshes, runs CFD and
+a spin-stress check, and writes a pass/fail report, driving five Ansys apps live through MCP.
 
-An AI agent (Hermes Agent) runs a centrifugal compressor re-rate study in Ansys 2026 R1 on a Windows desktop. It
-reads the customer's documents, drafts a case file, gets the engineer's approval, then sizes, changes the
-geometry, meshes, runs CFD and a spin-stress check, and writes a pass/fail report from that run's own results.
+There is **no prewritten end-to-end script**. Skills teach the method; the agent reads the documents, chooses
+the run parameters, judges convergence and failures, and decides each next step. Six MCP servers expose
+specific actions only (launch, mesh, solve, measure). Machine data lives in one case file per compressor, not in
+code.
 
-**This is a concept demo of an agent operating existing engineering tools. It is not a validated design tool.**
-Status: experimental.
+## Status
 
-## What is validated and what is not
+Windows/local-desktop **experimental**, Ansys 2026 R1 Student. Two complete agent runs from the prompt, with no
+human input, ended "PASS ON CHECKED ITEMS ONLY": Claude Opus in 4 h 50 min and DeepSeek V4 Flash in 2 h 43 min.
+**The CFD model is not calibrated** against NASA's measured baseline, so the airflow targets are NOT CHECKED. See
+[validation and limitations](docs/VALIDATION.md). A fresh install on a second machine remains required before
+calling this reproducible.
 
-Details and evidence: [docs/VALIDATION.md](docs/VALIDATION.md).
+## Quick start (Windows PowerShell)
 
-Validated (Windows 11, Ansys 2026 R1 Student, GUI mode):
-- **The agent end to end from the prompt**, in a freshly installed profile, no human input: run 4 (Claude Opus,
-  4 h 50 min) and a demo-mode style run (DeepSeek V4 Flash, about 2 h 45 min). Both gave "PASS ON CHECKED ITEMS
-  ONLY": casing fit, speed, strength and the 1D flow estimate pass; the aero rows are NOT CHECKED.
-- Every stage runs live on the NASA compressor example (examples/01_nasa_hecc): 1D sizing, geometry change and solids, passage mesh, CFD,
-  structural, report.
-- CFD calibration against NASA's measured baseline was run. Result: NOT CALIBRATED (see limits).
-- Strength check at overspeed, mesh-converged.
-- A second, deliberately changed case (other speed, units, material) is carried through every stage and the report.
-- Unit tests and the layout scan pass. The health check is ALL GREEN on this machine's install.
+Install **Ansys 2026 R1** with Vista CCD, Discovery, TurboGrid, Fluent and Mechanical, install
+[Hermes Agent](https://hermes-agent.nousresearch.com/docs/getting-started/installation) with a working model, and
+have Git plus [Python 3.13](https://www.python.org/downloads/) available. Then:
 
-Not validated yet:
-- A fresh install on a second, clean machine driven only by the setup assistant.
-- A full run with demo-mode time caps active (the caps are unit-tested; the DeepSeek run above used an older
-  installed copy of the tools without them).
-- Commercial license behaviour (concurrent apps, GPU Fluent, headless modes), other Ansys versions.
+```powershell
+git clone https://github.com/rachely214/ansys-rerate-agent.git
+cd ansys-rerate-agent
+.\setup.ps1
+```
 
-## Known limits
+The installer creates a **private Python environment** in `%LOCALAPPDATA%\ansys-rerate-agent`, installs locked
+packages and the agent tools, writes a machine config, downloads the NASA example geometry (about 4.9 GB), and
+installs a separate Hermes profile, `ansys-rerate-agent`, with its six MCP servers. It ends with a health check
+that must say ALL GREEN. It does not install or license Ansys, read or write API keys, or change your default
+Hermes profile.
 
-- **CFD is not calibrated.** Against NASA's measured baseline the model over-predicts corrected flow by about 9 %
-  and impeller efficiency by about 7.4 points. Likely causes: design-intent geometry instead of the
-  as-manufactured impeller; the Student 1M-cell mesh cap (near-wall y+ 16 to 96, wall functions); different
-  measurement stations. Nothing is corrected with a factor, so aero rows cannot PASS.
-- **Re-rated design point not demonstrated.** Neither design reached a converged state at its target flow.
-- **Structural model** is a single blade on a hub slice, centrifugal load only.
-- **Not simulated:** surge margin, shaft power, running tip clearance, Campbell diagram.
-- **One design lever:** the impeller exit blade height, from the 1D sizing.
-- **Windows and Ansys 2026 R1 only.**
-- **The agent run from the prompt in a fresh profile has not yet been validated end to end** (in progress).
+Follow [SETUP.md](SETUP.md) for the one-time model key and the desktop-session rules. Then restart Hermes, choose
+the profile **ansys-rerate-agent**, start a new chat, attach the three files from
+`examples/01_nasa_hecc/inputs/`, and ask the agent:
 
-## Agent vs scripted
+> Our customer sent a re-rate request for their compressor: they need about 6% more flow without changing the
+> casing. Their request, the baseline datasheet and the casing limits are attached. The impeller geometry and a
+> draft case file are in the example folder `examples/01_nasa_hecc/`. Can we do it? Check the case against their
+> documents and show me the key values with their sources. For this session I approve the case on the engineer's
+> behalf once every value has a source, so carry on without waiting. Then size it, change the geometry, mesh it,
+> simulate it and check its strength, live in Ansys, and give me a pass/fail report. This is a time-boxed
+> feasibility check: if a simulation does not settle within its budget, mark it NOT CHECKED and keep going.
 
-The agent does:
-- read the customer documents, draft and validate the case, and ask the engineer about missing values;
-- choose run parameters (mesh sizes, solve chunks, time caps) and state each choice;
-- judge convergence and failures, retry or recover, and stop when the computer is not ready;
-- write the summary.
-
-Fixed, tested tools do the Ansys work: the geometry recipe, meshing, solver setup, stress study and scorecard.
-The design change is one lever (exit blade height from the 1D sizing).
+Full prompt: [examples/01_nasa_hecc/prompt_demo.md](examples/01_nasa_hecc/prompt_demo.md). A version that waits
+for the engineer's approval: [examples/01_nasa_hecc/prompt.md](examples/01_nasa_hecc/prompt.md).
 
 ## Architecture
 
-```
- Phase 1: setup                                   Phase 2: demo
- --------------                                   -------------
- setup assistant (Hermes profile                  demo agent (Hermes profile ansys-rerate-agent)
-   ansys-rerate-setup, setup skills)                 SOUL + 8 rerate-* skills
-        |                                                  |
-        | runs                                             | MCP over stdio (6 servers)
-        v                                                  v
- setup/install_runtime.py ---> install home        case_v2  vista_v2  geometry_v2  turbogrid_v2  fluent_v2  mechanical_v2
- setup/check.py (no AI)        %LOCALAPPDATA%\        |        |          |            |             |           |
-   decides: ALL GREEN          ansys-rerate-agent\    |        v          v            v             v           v
-        |                        venv\  (runtime)     |   Vista CCD   Discovery    TurboGrid       Fluent    Mechanical
-        |                        machine.config.yaml  |   (Workbench)
-        |                        example-data\        |        |          |            |             |           |
-        +---> demo profile       runs\  work\         +--------+----------+------------+-------------+-----------+
-              (mcp_servers                                                   |
-               rendered with                                                 v
-               RERATE_CONFIG)                               run folder: runs\<case>_<timestamp>\
-                                                              run.json, case.snapshot.yaml, stage files
-                                                              -> REPORT.md
+```text
+Agent on this desktop (Hermes profile ansys-rerate-agent)
+  ├─ skills: intake / sizing / geometry / meshing / cfd / structural / report
+  └─ MCP stdio servers (private Python environment)
+       ├─ case_v2        case file, approval, runs, calibration, report
+       ├─ vista_v2       → Vista CCD (Workbench)   1D sizing
+       ├─ geometry_v2    → Discovery               blade change, solids
+       ├─ turbogrid_v2   → TurboGrid               passage mesh
+       ├─ fluent_v2      → Fluent                  passage CFD
+       └─ mechanical_v2  → Mechanical              spin stress
+  run folder: %LOCALAPPDATA%\ansys-rerate-agent\runs\<case>_<time>\ → REPORT.md
 ```
 
-More: [docs/HOW-IT-WORKS.md](docs/HOW-IT-WORKS.md).
+One agent owns all dependent stages. No hidden subagents and no sandbox. The servers contain app control,
+geometry conversion and checks, not machine data or engineering choices. More:
+[docs/HOW-IT-WORKS.md](docs/HOW-IT-WORKS.md).
 
 ## Repository map
 
-| Path | What it is |
+| Path | Purpose |
 |---|---|
-| `START-HERE.md` | Plain-language guide for a first-time user |
-| `agent/` | Hermes profile distribution of the demo agent: `SOUL.md`, `config.yaml`, `distribution.yaml`, `mcp_servers.json` (template), `skills/rerate-*` (8 skills) |
-| `setup/setup-agent/` | Hermes profile distribution of the setup assistant: `SOUL.md`, `config.yaml`, `distribution.yaml`, `skills/setup-run`, `setup-diagnose`, `ansys-host-diagnostics` |
-| `setup/check.py` | Deterministic health check (no AI); prints ALL GREEN or NOT READY |
-| `setup/install_runtime.py` | Installer steps: venv, packages, config, example-data, profile, all |
-| `setup/fetch_example_data.py` | Resumable NASA example data download into the install home |
-| `setup/machine.config.template.yaml` | Template for the per-machine `machine.config.yaml` |
-| `setup/requirements.lock` | Pinned Python packages |
-| `setup/upgrade_config.py`, `setup/_run_module.py` | Config upgrade helper; module runner used to start servers |
-| `setup/verify_layout.py` | Static scan: required files, no machine values, no arbitrary-code tools |
-| `runtime/` | Python package `rerate_mcp_v2`: 6 MCP servers (`servers/`), geometry adapters, in-app Ansys scripts (`app_scripts/`), case schema, report |
-| `runtime/materials/` | Notes on material files (no Ansys material data ships here) |
-| `examples/01_nasa_hecc/` | Worked example: `prompt.md`, `inputs/` (3 customer documents), `case.yaml`, `materials/`, `data_source.yaml`, `expected.md` |
-| `docs/` | `HOW-IT-WORKS.md`, `TROUBLESHOOTING.md`, `VALIDATION.md`, `DECISIONS.md`, `ROADMAP.md`, `BUILD_PLAN.md` (maintainer note) |
-| `tests/` | Unit tests (no Ansys needed) |
-| `dev/` | Maintainer tools (`mcp_call.py`, `clean_clone_test.py`); not used by either agent |
-| `LICENSE`, `THIRD_PARTY_NOTICES.md`, `SECURITY.md`, `CONTRIBUTING.md` | Legal, security and contribution notes |
+| `agents/rerate-engineer/SOUL.md` | Agent behavior |
+| `agents/rerate-engineer/skills/` | Eight stage skills; `rerate-run` is the entry point |
+| `harnesses/hermes/` | Hermes profile manifest, behavior config, MCP server template (`mcp_servers.json`) |
+| `plugins/ansys-mcp/` | Python package of the six MCP servers, geometry adapters, in-app Ansys scripts, case schema, report |
+| `setup.ps1`, `scripts/setup/` | Host-local installer, health check (`check.py`), layout scan, pinned packages |
+| `scripts/setup/setup-agent/` | Optional setup assistant (Hermes profile `ansys-rerate-setup`) |
+| `scripts/dev/` | Maintainer test tools; never used by the agent |
+| `examples/01_nasa_hecc/` | Customer documents, draft case, material file, prompts |
+| `docs/` | How it works, validation, decisions, troubleshooting, roadmap, release checklist; `docs/examples/` expected outcome |
+| `tests/` | Unit tests, no Ansys needed |
+| `.github/` | Issue and pull request templates, CI (unit tests and layout scan) |
+| install home (`%LOCALAPPDATA%\ansys-rerate-agent`) | Machine config, environment, example data, runs; never commit |
 
-## How a report scores results
+## What the HECC example demonstrates
 
-`REPORT.md` is built by `case_v2.build_report` from the active run's `run.json` only, never from older runs.
+- NASA High Efficiency Centrifugal Compressor (public data): 15 main blades and 15 splitters, 21,789 rpm,
+  baseline 10.85 lbm/s; customer target 11.5 lbm/s (+6 %) with the exit blade height limited to 0.650 in.
+- Case intake: every value with a document source or a labelled engineering choice.
+- 1D sizing in Vista CCD: exit blade height 0.609 to 0.634 in, inside the casing limit.
+- Geometry changed from NASA's blade tables and built as solids in Discovery; TurboGrid passage mesh with the
+  splitter and tip gap, 780,920 cells.
+- Fluent passage CFD: the re-rated design reaches 12.59 lbm/s at choke, above the target.
+- Mechanical spin stress at 105 % speed: safety factor 4.86 against a minimum of 1.5 with the root fillet
+  modelled, mesh-converged (4.77, labelled indicative, in a run that fell back to a sharp root).
+- A report where every check is PASS, FAIL or NOT CHECKED with a reason.
 
-- **PASS / FAIL:** a measured value from this run against the case target.
-- **FAIL (model-limited):** a FAIL where the stage declared fidelity limits (for example single passage, no
-  diffuser). The FAIL stands; the label says why it may not reflect the real machine.
-- **NOT CHECKED:** no stage produced the value. Never counted as a PASS.
-- **Calibration gate:** unless a matching baseline run says CALIBRATED, CFD rows cannot PASS. A would-be PASS
-  becomes NOT CHECKED with "model not calibrated"; unconverged CFD is never scored.
-- **Design point at target flow:** a re-rated design is evaluated at its target flow (targeted mass flow, with a
-  speedline fallback). Choke below the target is a real FAIL with the maximum flow. No converged point at the
-  target means NOT CHECKED.
+**It does not demonstrate a calibrated or validated design.** The CFD model over-predicts NASA's measured
+baseline flow and efficiency, and no converged solution was found at the target flow, so pressure ratio and
+efficiency at the target are NOT CHECKED. Surge margin, shaft power, running clearance and the Campbell diagram
+are not simulated. The design change is one lever, the impeller exit blade height. See
+[decisions](docs/DECISIONS.md).
 
-Verdict lines: `PASS`, `FAIL: n of m checks fail`, or `PASS ON CHECKED ITEMS ONLY` (not a release PASS).
+## Development and sharing
 
-## Roadmap
-
-See [docs/ROADMAP.md](docs/ROADMAP.md). Design decisions and their reasons: [docs/DECISIONS.md](docs/DECISIONS.md).
-
-## Development
-
-Use the install-home venv Python (or any Python 3.12/3.13 with `setup/requirements.lock` installed):
-
-```
-python -m unittest discover -s tests
-python setup/verify_layout.py
-python setup/check.py
+```powershell
+$py = "$env:LOCALAPPDATA\ansys-rerate-agent\venv\Scripts\python.exe"
+& $py -m unittest discover -s tests -v
+& $py scripts\setup\verify_layout.py
+& $py scripts\setup\check.py
 ```
 
-Maintainer tools in `dev/` are not used by either agent. Rules for changes: [CONTRIBUTING.md](CONTRIBUTING.md).
+`check.py` checks this computer and sends one short test message to the model; it does not run a study.
+Follow [CONTRIBUTING.md](CONTRIBUTING.md). Do not commit credentials, machine paths, run folders, Ansys files or
+NASA data.
 
-## License
-
-Apache License 2.0, see [LICENSE](LICENSE). Third-party notices: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
-Ansys is a trademark of ANSYS, Inc.; this project is not affiliated with or endorsed by Ansys.
+License: Apache-2.0 for this repository. Ansys is a trademark of ANSYS, Inc. Not affiliated with or endorsed by
+Ansys, NASA, NVIDIA, or Nous Research. Read [SECURITY.md](SECURITY.md).

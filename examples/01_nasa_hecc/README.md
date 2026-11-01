@@ -13,7 +13,7 @@ every stage live in Ansys: 1D sizing (Vista CCD), geometry change (Discovery), p
 
 ## How to run it
 
-First finish setup (see `START-HERE.md` at the repository root): the health check must say ALL GREEN. Then open
+First finish setup (see `SETUP.md` at the repository root): the health check must say ALL GREEN. Then open
 Hermes with the profile `ansys-rerate-agent`, start a new chat and paste the prompt from `prompt.md`.
 
 ## Files

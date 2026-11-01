@@ -1,5 +1,5 @@
-# Machine configuration for the Ansys re-rate agent (one file per computer).
-# setup/install_runtime.py config renders this template to <install home>/machine.config.yaml, by default
+# Machine configuration for the compressor re-rate agent (one file per computer).
+# scripts/setup/install_runtime.py config renders this template to <install home>/machine.config.yaml, by default
 # %LOCALAPPDATA%/ansys-rerate-agent/machine.config.yaml, and fills the <PLACEHOLDERS>.
 # Relative paths below are relative to the folder that holds machine.config.yaml (the install home).
 # The tool servers find this file through the RERATE_CONFIG variable set in the Hermes profile.

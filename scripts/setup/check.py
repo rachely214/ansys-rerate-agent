@@ -1,6 +1,6 @@
-"""Health check for the Ansys re-rate agent on this computer. No AI involved; read-only (it never changes anything).
+"""Health check for the compressor re-rate agent on this computer. No AI involved; read-only (it never changes anything).
 
-  python setup/check.py [--json] [--only GROUP] [--home DIR] [--profile NAME]
+  python scripts/setup/check.py [--json] [--only GROUP] [--home DIR] [--profile NAME]
 
 Groups: system, ansys, python, config, hermes, mcp. Prints one line per item:
   [PASS] / [FAIL] / [WARN] / [SKIP] item: detail      (FAIL lines add "  -> Fix: ...")
@@ -22,7 +22,7 @@ import tempfile
 import time
 from pathlib import Path
 
-REPO = Path(__file__).resolve().parents[1]
+REPO = Path(__file__).resolve().parents[2]
 GROUPS = ["system", "ansys", "python", "config", "hermes", "mcp"]
 SERVERS = ["case_v2", "vista_v2", "geometry_v2", "turbogrid_v2", "fluent_v2", "mechanical_v2"]
 MODULES = {s: "rerate_mcp_v2.servers.%s_server" % s[:-3] for s in SERVERS}
@@ -429,8 +429,8 @@ PKG_DIST = {"fastmcp": "fastmcp", "yaml": "PyYAML", "numpy": "numpy", "ansys.flu
 
 
 def runtime_dist():
-    """(distribution name, version) of the runtime, read from runtime/pyproject.toml."""
-    pp = REPO / "runtime" / "pyproject.toml"
+    """(distribution name, version) of the runtime, read from plugins/ansys-mcp/pyproject.toml."""
+    pp = REPO / "plugins" / "ansys-mcp" / "pyproject.toml"
     txt = pp.read_text(encoding="utf-8") if pp.exists() else ""
     n = re.search(r'^name\s*=\s*"([^"]+)"', txt, re.M)
     v = re.search(r'^version\s*=\s*"([^"]+)"', txt, re.M)
@@ -442,7 +442,7 @@ PKG_DIST["rerate_mcp_v2"] = runtime_dist()[0]
 
 def lock_versions():
     out = {}
-    lock = REPO / "setup" / "requirements.lock"
+    lock = REPO / "scripts" / "setup" / "requirements.lock"
     if lock.exists():
         for line in lock.read_text(encoding="utf-8").splitlines():
             if "==" in line and not line.startswith("#"):
@@ -468,7 +468,7 @@ def check_python(home):
     v = python_version(vp) if vp.exists() else None
     if not vp.exists():
         add("venv_present", g, "FAIL", "no Python environment at %s" % vp.parent.parent,
-            "Run: python setup/install_runtime.py venv --python <path of Python 3.13>.")
+            "Run: python scripts/setup/install_runtime.py venv --python <path of Python 3.13>.")
     elif v not in ((3, 13), (3, 12)):
         add("venv_present", g, "FAIL", "the environment at %s uses Python %s" % (vp.parent.parent, v),
             "Delete that venv folder and recreate it with Python 3.13 (install_runtime.py venv).")
@@ -490,7 +490,7 @@ def check_python(home):
             if r[0] is True and PKG_DIST[m].lower() in lock and r[1] != lock[PKG_DIST[m].lower()]]
     if missing:
         add("packages", g, "FAIL", "missing or broken: " + "; ".join(missing),
-            "Run: python setup/install_runtime.py packages.")
+            "Run: python scripts/setup/install_runtime.py packages.")
     elif mism:
         add("packages", g, "WARN", "all %d packages import; versions differ from the lock file: %s"
             % (len(res), ", ".join(mism)))
@@ -498,13 +498,15 @@ def check_python(home):
         add("packages", g, "PASS", "all %d packages import at the locked versions" % len(res))
     # The runtime is installed as a copy (non-editable). A repo update that was not reinstalled leaves the tool
     # servers on old code (seen: demo mode added in the repo, but the run used the old installed copy).
+    # Compare content, not line endings: git may check the repository out with LF or CRLF.
     code2 = ("import json, hashlib, pathlib, rerate_mcp_v2\nroot = pathlib.Path(rerate_mcp_v2.__file__).parent\n"
-             "print(json.dumps({p.relative_to(root).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()\n"
+             "h = lambda p: hashlib.sha256(p.read_bytes().replace(b'\\r\\n', b'\\n')).hexdigest()\n"
+             "print(json.dumps({p.relative_to(root).as_posix(): h(p)\n"
              "      for p in root.rglob('*') if p.is_file() and p.suffix in ('.py', '.yaml', '.json')}))\n")
     inst = run_json(vp, code2, timeout=120) or {}
-    src = REPO / "runtime" / "src" / "rerate_mcp_v2"
+    src = REPO / "plugins" / "ansys-mcp" / "src" / "rerate_mcp_v2"
     import hashlib
-    repo = {p.relative_to(src).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
+    repo = {p.relative_to(src).as_posix(): hashlib.sha256(p.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
             for p in src.rglob("*") if p.is_file() and p.suffix in (".py", ".yaml", ".json")
             and "__pycache__" not in p.parts}
     stale = sorted(k for k in repo if inst.get(k) != repo[k])
@@ -513,7 +515,7 @@ def check_python(home):
     elif stale:
         add("runtime_current", g, "FAIL", "the installed tools are older than this repository (%d file(s) differ, "
             "e.g. %s)" % (len(stale), ", ".join(stale[:3])),
-            "Run: python setup/install_runtime.py packages, then close Hermes completely and open it again.")
+            "Run: python scripts/setup/install_runtime.py packages, then close Hermes completely and open it again.")
     else:
         add("runtime_current", g, "PASS", "installed tools match this repository")
 
@@ -531,7 +533,7 @@ def _cfg_path(cfgfile, value):
 def check_config(home):
     g = "config"
     cf = config_file(home)
-    fix_new = "Run: python setup/install_runtime.py config --license student (or commercial)."
+    fix_new = "Run: python scripts/setup/install_runtime.py config --license student (or commercial)."
     if not cf.exists():
         add("machine_config", g, "FAIL", "no machine config at %s" % cf, fix_new)
     else:
@@ -569,7 +571,7 @@ def check_config(home):
     if missing:
         add("example_data", g, "FAIL", "%d of %d example geometry files missing in %s (first: %s)"
             % (len(missing), len(expected), out, missing[0]),
-            "Run: python setup/install_runtime.py example-data (downloads about 5 GB from NASA, resumable).")
+            "Run: python scripts/setup/install_runtime.py example-data (downloads about 5 GB from NASA, resumable).")
     else:
         add("example_data", g, "PASS", "all %d example geometry files present in %s" % (len(expected), out))
 
@@ -634,7 +636,7 @@ def check_hermes(home, profile):
             % (".".join(map(str, ver)) if ver else "?"), "Run: hermes update")
     if not profile_exists(profile):
         add("profile_installed", g, "FAIL", "Hermes profile '%s' does not exist" % profile,
-            "Run: python setup/install_runtime.py profile --name %s." % profile)
+            "Run: python scripts/setup/install_runtime.py profile --name %s." % profile)
         for cid in ("profile_mcp_wired", "profile_model_set", "profile_key_present", "model_reachable", "skills_present"):
             add(cid, g, "SKIP", "profile not installed")
     else:
@@ -690,7 +692,7 @@ def check_hermes(home, profile):
             add("skills_present", g, "WARN", "skills installed under older -v2 names: %s" % ", ".join(old))
         else:
             add("skills_present", g, "FAIL", "missing skills: %s" % ", ".join(miss),
-                "Run: python setup/install_runtime.py profile --name %s (reinstalls the skills)." % profile)
+                "Run: python scripts/setup/install_runtime.py profile --name %s (reinstalls the skills)." % profile)
     newest, stale = stale_server_processes(home)
     if newest is None:
         add("stale_servers", g, "SKIP", "runtime not installed yet")
@@ -723,7 +725,7 @@ def _wired(g, cfg, home, profile):
     if probs:
         add("profile_mcp_wired", g, "FAIL", "; ".join(probs[:4]) + (" (+%d more)" % (len(probs) - 4)
                                                                     if len(probs) > 4 else ""),
-            "Run: python setup/install_runtime.py profile --name %s, then close Hermes fully and reopen it." % profile)
+            "Run: python scripts/setup/install_runtime.py profile --name %s, then close Hermes fully and reopen it." % profile)
     else:
         add("profile_mcp_wired", g, "PASS", "all 6 tool servers point at %s" % venv_python(home))
 
@@ -765,7 +767,7 @@ def check_mcp(home, profile):
             continue
         if servers is None or not isinstance(servers.get(s), dict):
             add(cid, g, "FAIL", "%s is not in profile '%s'" % (s, profile),
-                "Run: python setup/install_runtime.py profile --name %s." % profile)
+                "Run: python scripts/setup/install_runtime.py profile --name %s." % profile)
             continue
         e = servers[s]
         spec = {"command": str(e.get("command")), "args": [str(a) for a in e.get("args") or []],

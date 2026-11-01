@@ -7,7 +7,7 @@ Before this:
 - `demo_mode.enabled: true` in the machine config (the default), so CFD is time-boxed and the run takes
   about 1.5 to 2 hours on a 4-core Student computer;
 - this computer stays unlocked, and any Remote Desktop window stays open (or use the console handover in
-  START-HERE.md).
+  SETUP.md).
 
 Open Hermes, choose the profile **ansys-rerate-agent**, start a **new chat**, attach the three files from
 `examples/01_nasa_hecc/inputs/` (re-rate request, baseline datasheet, casing limits), and paste the text between

@@ -7,7 +7,7 @@ from pathlib import Path
 from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "runtime" / "src"))
+sys.path.insert(0, str(ROOT / "plugins" / "ansys-mcp" / "src"))
 
 import rerate_mcp_v2  # noqa: E402
 from rerate_mcp_v2 import case as casemod  # noqa: E402
@@ -26,7 +26,7 @@ class ConfigLookup(unittest.TestCase):
         self.cfg.write_text(CFG, encoding="utf-8")
 
     def test_runtime_is_the_imported_package(self):
-        self.assertTrue(Path(rerate_mcp_v2.__file__).resolve().is_relative_to((ROOT / "runtime" / "src").resolve()))
+        self.assertTrue(Path(rerate_mcp_v2.__file__).resolve().is_relative_to((ROOT / "plugins" / "ansys-mcp" / "src").resolve()))
 
     def test_env_order(self):
         with mock.patch.dict(os.environ, {"RERATE_CONFIG": str(self.cfg), "RERATE_V2_CONFIG": "elsewhere.yaml"}):

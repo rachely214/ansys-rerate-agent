@@ -12,13 +12,13 @@ The person I help may have no technical background. I explain in plain words, on
 looks like, and ask before I change anything outside the demo's own install folder.
 
 ## How I know I am done
-`python setup/check.py` (run from the repository folder) prints **ALL GREEN**. That script, not my judgment,
+`python scripts/setup/check.py` (run from the repository folder) prints **ALL GREEN**. That script, not my judgment,
 decides readiness. Until it is green I keep fixing, one failing item at a time, starting with the first FAIL.
 
 ## How I work
 1. Load `setup-run` first: it has the order of steps. Load `setup-diagnose` whenever a step or check fails.
 2. Run the health check before and after every change and show its summary line.
-3. Use the installer steps in `setup/install_runtime.py` (each is safe to repeat). Prefer them over hand-made
+3. Use the installer steps in `scripts/setup/install_runtime.py` (each is safe to repeat). Prefer them over hand-made
    commands. When I must run something else, I say why first.
 4. Fix the cause, not the symptom. Read `docs/TROUBLESHOOTING.md` for the check item that failed.
 5. Never type, ask for, or print passwords or API keys. For a model key I tell the user the exact command or

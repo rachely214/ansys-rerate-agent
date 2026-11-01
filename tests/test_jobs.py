@@ -5,8 +5,8 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "runtime" / "src"))
-sys.path.insert(0, str(ROOT / "setup"))
+sys.path.insert(0, str(ROOT / "plugins" / "ansys-mcp" / "src"))
+sys.path.insert(0, str(ROOT / "scripts" / "setup"))
 
 from rerate_mcp_v2.servers.jobs import Job, parse_session_state  # noqa: E402
 from upgrade_config import merge_missing  # noqa: E402
